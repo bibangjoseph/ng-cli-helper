@@ -3,7 +3,9 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
-import { toKebabCase, toPascalCase, toCamelCase, isAngularProject } from './utils.js';
+import { toKebabCase, toPascalCase, toCamelCase, isAngularProject, getAngularMajorVersion, setupErrorHandlers } from './utils.js';
+
+setupErrorHandlers();
 
 /**
  * Crée le fichier de directive
@@ -13,6 +15,8 @@ function createDirectiveFile(directivesPath, directiveName) {
     const pascalName = toPascalCase(directiveName);
     const camelName = toCamelCase(directiveName);
     const directiveFilePath = path.join(directivesPath, `${kebabName}.directive.ts`);
+    const angularVersion = getAngularMajorVersion();
+    const standaloneFlag = angularVersion > 0 && angularVersion < 19 ? '\n  standalone: true,' : '';
 
     // Vérifier si la directive existe déjà
     if (fs.existsSync(directiveFilePath)) {
@@ -24,8 +28,7 @@ function createDirectiveFile(directivesPath, directiveName) {
     const directiveContent = `import { Directive, ElementRef, HostListener, Input } from '@angular/core';
 
 @Directive({
-  selector: '[app${pascalName}]',
-  standalone: true
+  selector: '[app${pascalName}]',${standaloneFlag}
 })
 export class ${pascalName}Directive {
   // Exemple d'Input (optionnel)
@@ -48,8 +51,38 @@ export class ${pascalName}Directive {
 }
 `;
 
-    // Écrire le fichier
     fs.writeFileSync(directiveFilePath, directiveContent);
+
+    const specFilePath = path.join(directivesPath, `${kebabName}.directive.spec.ts`);
+    const specContent = `import { ${pascalName}Directive } from './${kebabName}.directive';
+import { Component } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+@Component({
+  standalone: true,
+  imports: [${pascalName}Directive],
+  template: '<div app${pascalName}></div>'
+})
+class TestHostComponent {}
+
+describe('${pascalName}Directive', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+});
+`;
+    fs.writeFileSync(specFilePath, specContent);
 
     return true;
 }
@@ -113,7 +146,10 @@ async function createDirective() {
             console.log(`   3. Utiliser dans le template:`);
             console.log(`      <div app${pascalName}>Contenu avec directive</div>\n`);
 
-            console.log('📝 N\'oubliez pas de personnaliser votre directive!');
+            console.log('\n📂 Fichiers créés:');
+            console.log(`   ├── ${kebabName}.directive.ts`);
+            console.log(`   └── ${kebabName}.directive.spec.ts`);
+            console.log('\n📝 N\'oubliez pas de personnaliser votre directive!');
             console.log(`   Éditez: shared/directives/${kebabName}.directive.ts\n`);
         }
 
@@ -127,16 +163,4 @@ async function createDirective() {
     }
 }
 
-// Gestion des erreurs non capturées
-process.on('uncaughtException', (error) => {
-    console.error('\n❌ Erreur inattendue:', error.message);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-    console.error('\n❌ Promesse rejetée:', reason);
-    process.exit(1);
-});
-
-// Exécution
 createDirective();

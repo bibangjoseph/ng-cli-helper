@@ -2,11 +2,9 @@
 import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
-import { toKebabCase, toPascalCase, isAngularProject } from './utils.js';
+import { toKebabCase, toPascalCase, isAngularProject, getAvailableModules, setupErrorHandlers } from './utils.js';
 
-function moduleExists(modulePath) {
-    return fs.existsSync(modulePath);
-}
+setupErrorHandlers();
 
 /**
  * Crée le fichier de modèle
@@ -57,43 +55,35 @@ async function createModel() {
             process.exit(1);
         }
 
-        // Demander le nom du modèle et du module
+        const modules = getAvailableModules();
+
+        if (modules.length === 0) {
+            console.error('❌ Aucun module trouvé dans src/app/features.');
+            console.log('💡 Créez d\'abord un module avec: npm run g:package\n');
+            process.exit(1);
+        }
+
         const answers = await inquirer.prompt([
             {
                 name: 'modelName',
                 message: 'Quel est le nom du modèle ?',
                 validate: input => {
-                    if (!input) {
-                        return 'Le nom du modèle est requis.';
-                    }
-                    if (!/^[a-zA-Z0-9\s\-_]+$/.test(input)) {
-                        return 'Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et underscores.';
-                    }
+                    if (!input) return 'Le nom du modèle est requis.';
+                    if (!/^[a-zA-Z0-9\s\-_]+$/.test(input)) return 'Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et underscores.';
                     return true;
                 },
                 filter: input => toKebabCase(input)
             },
             {
+                type: 'list',
                 name: 'moduleName',
                 message: 'Dans quel module ?',
-                validate: input => {
-                    if (!input) {
-                        return 'Le nom du module est requis.';
-                    }
-                    return true;
-                }
+                choices: modules
             }
         ]);
 
         const { modelName, moduleName } = answers;
         const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
-
-        // Vérifier que le module existe
-        if (!moduleExists(modulePath)) {
-            console.error(`\n❌ Le module "${moduleName}" n'existe pas dans src/app/features/`);
-            console.log(`💡 Créez d'abord le module avec: npm run g:package\n`);
-            process.exit(1);
-        }
 
         // Créer le modèle
         const success = createModelFile(modulePath, modelName);
@@ -123,16 +113,4 @@ async function createModel() {
     }
 }
 
-// Gestion des erreurs non capturées
-process.on('uncaughtException', (error) => {
-    console.error('\n❌ Erreur inattendue:', error.message);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-    console.error('\n❌ Promesse rejetée:', reason);
-    process.exit(1);
-});
-
-// Exécution
 createModel();

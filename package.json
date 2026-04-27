@@ -1,6 +1,6 @@
 {
   "name": "angular-cli-helper",
-  "version": "6.2.1",
+  "version": "6.3.0",
   "main": "index.js",
   "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
   "bin": {

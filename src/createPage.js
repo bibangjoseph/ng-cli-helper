@@ -3,18 +3,9 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
-import { formatFolderName, toPascalCase, toKebabCase, toConstantCase } from './utils.js';
+import { formatFolderName, toPascalCase, toKebabCase, toConstantCase, getAvailableModules, getAngularMajorVersion, setupErrorHandlers } from './utils.js';
 
-/**
- * Liste les modules disponibles dans src/app/features
- */
-function getAvailableModules() {
-    const featuresPath = path.join(process.cwd(), 'src', 'app', 'features');
-    if (!fs.existsSync(featuresPath)) return [];
-    return fs.readdirSync(featuresPath).filter(entry => {
-        return fs.statSync(path.join(featuresPath, entry)).isDirectory();
-    });
-}
+setupErrorHandlers();
 
 /**
  * Met à jour le fichier routes.ts du module avec la nouvelle page (lazy loading)
@@ -142,6 +133,8 @@ async function createPage() {
 
         const selector = `app-${folderName}`;
         const className = `${toPascalCase(pageName)}Page`;
+        const angularVersion = getAngularMajorVersion();
+        const standaloneFlag = angularVersion > 0 && angularVersion < 19 ? '\n  standalone: true,' : '';
         const tsFile = path.join(basePath, `${folderName}.page.ts`);
         const htmlFile = path.join(basePath, `${folderName}.page.html`);
         const scssFile = path.join(basePath, `${folderName}.page.scss`);
@@ -151,8 +144,7 @@ async function createPage() {
 import { ApiService } from '@/core/services/api.service';
 
 @Component({
-  selector: '${selector}',
-  standalone: true,
+  selector: '${selector}',${standaloneFlag}
   imports: [],
   templateUrl: './${folderName}.page.html',
   styleUrls: ['./${folderName}.page.scss']
@@ -206,15 +198,5 @@ describe('${className}', () => {
         process.exit(1);
     }
 }
-
-process.on('uncaughtException', (error) => {
-    console.error('\n❌ Erreur inattendue:', error.message);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-    console.error('\n❌ Promesse rejetée:', reason);
-    process.exit(1);
-});
 
 createPage();
