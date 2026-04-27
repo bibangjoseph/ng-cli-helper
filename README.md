@@ -4,21 +4,25 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/npm/dm/angular-cli-helper.svg)](https://www.npmjs.com/package/angular-cli-helper)
 
-**Angular CLI Helper** is a CLI tool designed to speed up development on Angular standalone projects (Angular 17+). It scaffolds components, services, models, pages, packages, guards, directives, and pipes — and can initialize a full project structure with a built-in **API service**, **authentication system**, and **HTTP interceptor**.
+**Angular CLI Helper** is a CLI tool designed to speed up development on Angular standalone projects (Angular 14+). It scaffolds components, services, models, pages, packages, guards, directives, and pipes — and can initialize a full project structure with a built-in **API service**, **authentication system**, and **HTTP interceptor**.
+
+Every generated artifact comes with its **`.spec.ts` test file**, ready to run. The generator automatically detects your Angular version — on Angular 19+, `standalone: true` is omitted since it's the default.
 
 ---
 
 ## ✨ Why Angular CLI Helper?
 
 - 🚀 **Save time** — Automatic boilerplate generation
+- 🧪 **Tests included** — Every artifact generates its `.spec.ts` file out of the box
 - 📁 **Consistent structure** — Standardized, professional project architecture
 - 🎯 **Best practices** — Follows Angular conventions and modern patterns
 - 🔧 **Built-in API service** — Full HTTP service with error handling and signals
 - 🔐 **Auth ready** — Guards, CoreService, and HTTP interceptor pre-configured
-- 💡 **Intuitive** — Interactive CLI prompts
+- 💡 **Intuitive** — Interactive CLI prompts with module selection lists
 - ⚡ **Lazy loading** — Routes automatically configured with `loadComponent` / `loadChildren`
 - 🛡️ **Route protection** — AuthGuard and GuestGuard included
 - 🔗 **Path alias** — `@/*` alias automatically added to `tsconfig.json`
+- 📐 **Version-aware** — Adapts generated code to your Angular version (14–18 vs 19+)
 
 ---
 
@@ -26,7 +30,8 @@
 
 | Library version | Recommended Angular | Architecture                        |
 |-----------------|---------------------|-------------------------------------|
-| `^6.x`          | Angular 17 – 21+    | Standalone + `features/` + Auth + `@/` alias |
+| `^6.3.x`        | Angular 14 – 21+    | Standalone + `features/` + Auth + `@/` alias + spec files + version-aware |
+| `^6.2.x`        | Angular 17 – 21+    | Standalone + `features/` + Auth + `@/` alias |
 | `^5.x`          | Angular 17 – 21+    | Standalone + `features/` + Auth     |
 | `^4.x`          | Angular 17 – 20+    | Classic modules                     |
 | `^2.x`          | Angular 16+         | Classic modules                     |
@@ -246,17 +251,17 @@ npm run g:page
 features/products/views/product-list/
 ├── product-list.page.ts
 ├── product-list.page.html
-└── product-list.page.scss
+├── product-list.page.scss
+└── product-list.page.spec.ts
 ```
 
-**Generated `product-list.page.ts`:**
+**Generated `product-list.page.ts`** (Angular 19+):
 ```typescript
 import { Component, inject } from '@angular/core';
 import { ApiService } from '@/core/services/api.service';
 
 @Component({
   selector: 'app-product-list',
-  standalone: true,
   imports: [],
   templateUrl: './product-list.page.html',
   styleUrls: ['./product-list.page.scss']
@@ -265,6 +270,8 @@ export class ProductListPage {
   private apiService = inject(ApiService);
 }
 ```
+
+> On Angular 14–18, `standalone: true` is added automatically.
 
 `routes.ts` is updated automatically with the new child route:
 ```typescript
@@ -289,22 +296,30 @@ npm run g:component
 ? Is it a global (shared) component? (Y/n)
 ```
 
-**If global (shared):**
+**If feature-scoped, a module list is shown:**
+```
+? Module:
+  ❯ auth
+    dashboard
+    products
+```
+
+**Generated files (global):**
 ```
 shared/components/product-card/
 ├── product-card.component.ts
 ├── product-card.component.html
-└── product-card.component.scss
+├── product-card.component.scss
+└── product-card.component.spec.ts
 ```
 
-**If feature-scoped:**
+**Generated files (feature-scoped):**
 ```
-? Module: products
-
 features/products/components/product-card/
 ├── product-card.component.ts
 ├── product-card.component.html
-└── product-card.component.scss
+├── product-card.component.scss
+└── product-card.component.spec.ts
 ```
 
 ---
@@ -319,7 +334,12 @@ npm run g:service
 ? Service name: products
 ```
 
-Creates `core/services/products.service.ts`.
+**Generated files:**
+```
+core/services/
+├── products.service.ts
+└── products.service.spec.ts
+```
 
 ---
 
@@ -331,7 +351,10 @@ npm run g:model
 
 ```
 ? Model name: product
-? Module: products
+? Module:
+  ❯ auth
+    dashboard
+    products
 ```
 
 Creates `features/products/models/product.ts`:
@@ -353,7 +376,13 @@ npm run g:guard
 ? Guard name: admin
 ```
 
-Creates `core/guards/admin.guard.ts`:
+**Generated files:**
+```
+core/guards/
+├── admin.guard.ts
+└── admin.guard.spec.ts
+```
+
 ```typescript
 import { CanActivateFn } from '@angular/router';
 
@@ -370,7 +399,7 @@ export const AdminGuard: CanActivateFn = (route, state) => {
 npm run g:directive
 ```
 
-Creates `shared/directives/<name>.directive.ts` with a standalone directive scaffold.
+Creates `shared/directives/<name>.directive.ts` and `<name>.directive.spec.ts` with a standalone directive scaffold.
 
 ---
 
@@ -380,7 +409,7 @@ Creates `shared/directives/<name>.directive.ts` with a standalone directive scaf
 npm run g:pipe
 ```
 
-Creates `shared/pipes/<name>.pipe.ts` with a standalone pipe scaffold.
+Creates `shared/pipes/<name>.pipe.ts` and `<name>.pipe.spec.ts` with a standalone pipe scaffold.
 
 ---
 
@@ -506,6 +535,15 @@ ng build --configuration production
 | `npm run help`        | Display command help                             |
 
 ---
+
+## 🆕 What's new in v6.3.0
+
+- ✅ **Spec files generated by default** — Every artifact (component, page, service, guard, directive, pipe) now generates its `.spec.ts` file automatically
+- ✅ **Angular version detection** — Reads `@angular/core` version from your `package.json` and omits `standalone: true` on Angular 19+ (where it's the default)
+- ✅ **Module selection as list in all generators** — `g:component` and `g:model` now show available modules interactively, just like `g:page`
+- ✅ **Standalone service generator** — `g:service` no longer relies on `ng generate` under the hood; files are generated directly
+- ✅ **Unified error handling** — All generators validate the Angular project context and handle errors consistently
+- ✅ **Shared helpers** — `getAvailableModules()` and `setupErrorHandlers()` extracted to `utils.js`
 
 ## 🆕 What's new in v6.2.0
 
