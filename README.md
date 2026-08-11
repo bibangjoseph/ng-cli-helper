@@ -30,6 +30,7 @@ Every generated artifact comes with its **`.spec.ts` test file**, ready to run. 
 
 | Library version | Recommended Angular | Architecture                        |
 |-----------------|---------------------|-------------------------------------|
+| `^7.0.x`        | Angular 22+         | Charte v2.0 (Zoneless, Signals, \`httpResource\`), CSS Choice |
 | `^6.3.x`        | Angular 14 – 21+    | Standalone + `features/` + Auth + `@/` alias + spec files + version-aware |
 | `^6.2.x`        | Angular 17 – 21+    | Standalone + `features/` + Auth + `@/` alias |
 | `^5.x`          | Angular 17 – 21+    | Standalone + `features/` + Auth     |

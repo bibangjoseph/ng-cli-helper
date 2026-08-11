@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 import { fileURLToPath } from 'url';
+import inquirer from 'inquirer';
 
 // Pour ESM modules
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +23,19 @@ async function initProject() {
             console.error('💡 Assurez-vous d\'être dans le dossier racine d\'un projet Angular.\n');
             process.exit(1);
         }
+
+        const { cssFramework } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'cssFramework',
+                message: 'Quel framework CSS souhaitez-vous utiliser ?',
+                choices: [
+                    { name: 'Tailwind CSS', value: 'tailwind' },
+                    { name: 'Bootstrap', value: 'bootstrap' },
+                    { name: 'CSS Custom (aucun framework)', value: 'custom' }
+                ]
+            }
+        ]);
 
         const basePath = path.join(process.cwd(), 'src', 'app');
 
@@ -63,6 +77,9 @@ async function initProject() {
 
         // Créer les modules par défaut
         await createDefaultModules(basePath);
+
+        // Configurer le framework CSS
+        configureCssFramework(cssFramework);
 
         console.log('\n✅ Structure du projet créée avec succès!\n');
         console.log('📂 Structure générée:');
@@ -362,12 +379,14 @@ function createApiService(basePath) {
         return;
     }
 
-    const apiServiceContent = `import {computed, inject, Injectable, Injector, signal} from '@angular/core';
-import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams} from '@angular/common/http';
-import {Router} from '@angular/router';
-import {environment} from '../../../environments/environment';
-import {catchError, finalize, Observable, tap, throwError} from 'rxjs';
-import {CoreService} from '@/core/services/core.service';
+    const apiServiceContent = `import { computed, inject, Injectable, signal, ResourceRef } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+// @ts-ignore: Assuming httpResource is available in Angular 22
+import { httpResource } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { catchError, finalize, Observable, tap, throwError } from 'rxjs';
+import { CoreService } from '@/core/services/core.service';
 
 export interface ApiRequestOptions {
   headers?: HttpHeaders | { [header: string]: string | string[] };
@@ -383,12 +402,6 @@ export interface PaginatedResponse<T> {
   last_page: number;
   per_page: number;
   total: number;
-  links?: {
-    first?: string;
-    last?: string;
-    prev?: string;
-    next?: string;
-  };
 }
 
 @Injectable({
@@ -397,7 +410,6 @@ export interface PaginatedResponse<T> {
 export class ApiService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private injector = inject(Injector);
   private coreService = inject(CoreService);
 
   private readonly apiUrl = environment.apiUrl;
@@ -406,8 +418,8 @@ export class ApiService {
   private _backendErrors = signal<Record<string, string[]>>({});
   public readonly backendErrors = computed(() => this._backendErrors());
 
-  private _loading = signal<boolean>(false);
-  public readonly loading = computed(() => this._loading());
+  private _activeRequests = signal<number>(0);
+  public readonly loading = computed(() => this._activeRequests() > 0);
 
   clearBackendErrors(): void {
     this._backendErrors.set({});
@@ -419,115 +431,72 @@ export class ApiService {
     this._backendErrors.set(errors);
   }
 
+  /**
+   * Effectue une requête GET via httpResource() (Angular 22+)
+   * @param url Chemin de l'API
+   * @param options Options pour la ressource
+   * @returns ResourceRef gérant isLoading, value, error
+   */
+  getResource<T>(url: string, options?: any): any /* ResourceRef<T> */ {
+    return httpResource<T>(this.apiUrl + url, options);
+  }
+
   get<T>(url: string, options?: ApiRequestOptions): Observable<T> {
-    this._loading.set(true);
+    this._activeRequests.update(n => n + 1);
     return this.http.get<T>(this.apiUrl + url, options).pipe(
       tap(data => {
         if (this.debugMode) { console.log(\`[GET] \${url}\`, data); }
       }),
       catchError(error => this.handleError(error, 'GET', url)),
-      finalize(() => this._loading.set(false))
+      finalize(() => this._activeRequests.update(n => Math.max(0, n - 1)))
     );
   }
 
   post<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
-    this._loading.set(true);
+    this._activeRequests.update(n => n + 1);
     this.clearBackendErrors();
     return this.http.post<T>(this.apiUrl + url, data, options).pipe(
       tap(data => {
         if (this.debugMode) { console.log(\`[POST] \${url}\`, { request: data, response: data }); }
       }),
       catchError(error => this.handleError(error, 'POST', url)),
-      finalize(() => this._loading.set(false))
+      finalize(() => this._activeRequests.update(n => Math.max(0, n - 1)))
     );
   }
 
   put<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
-    this._loading.set(true);
+    this._activeRequests.update(n => n + 1);
     this.clearBackendErrors();
     return this.http.put<T>(this.apiUrl + url, data, options).pipe(
       tap(data => {
         if (this.debugMode) { console.log(\`[PUT] \${url}\`, { request: data, response: data }); }
       }),
       catchError(error => this.handleError(error, 'PUT', url)),
-      finalize(() => this._loading.set(false))
+      finalize(() => this._activeRequests.update(n => Math.max(0, n - 1)))
     );
   }
 
   patch<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
-    this._loading.set(true);
+    this._activeRequests.update(n => n + 1);
     this.clearBackendErrors();
     return this.http.patch<T>(this.apiUrl + url, data, options).pipe(
       tap(data => {
         if (this.debugMode) { console.log(\`[PATCH] \${url}\`, { request: data, response: data }); }
       }),
       catchError(error => this.handleError(error, 'PATCH', url)),
-      finalize(() => this._loading.set(false))
+      finalize(() => this._activeRequests.update(n => Math.max(0, n - 1)))
     );
   }
 
   delete<T>(url: string, options?: ApiRequestOptions): Observable<T> {
-    this._loading.set(true);
+    this._activeRequests.update(n => n + 1);
     return this.http.delete<T>(this.apiUrl + url, options).pipe(
       tap(data => {
         if (this.debugMode) { console.log(\`[DELETE] \${url}\`, data); }
       }),
       catchError(error => this.handleError(error, 'DELETE', url)),
-      finalize(() => this._loading.set(false))
+      finalize(() => this._activeRequests.update(n => Math.max(0, n - 1)))
     );
-  }
-
-  getPaginate<T>(url: string): Observable<PaginatedResponse<T>> {
-    this._loading.set(true);
-    return this.http.get<PaginatedResponse<T>>(url).pipe(
-      tap(data => {
-        if (this.debugMode) { console.log('[GET Paginate]', { url, response: data }); }
-      }),
-      catchError(error => this.handleError(error, 'GET PAGINATE', url)),
-      finalize(() => this._loading.set(false))
-    );
-  }
-
-  uploadFile<T>(url: string, file: File, additionalData?: Record<string, any>): Observable<T> {
-    this._loading.set(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    if (additionalData) {
-      Object.keys(additionalData).forEach(key => formData.append(key, additionalData[key]));
-    }
-    return this.http.post<T>(this.apiUrl + url, formData).pipe(
-      tap(data => {
-        if (this.debugMode) { console.log(\`[UPLOAD] \${url}\`, { file: file.name, response: data }); }
-      }),
-      catchError(error => this.handleError(error, 'UPLOAD', url)),
-      finalize(() => this._loading.set(false))
-    );
-  }
-
-  downloadFile(url: string): Observable<Blob> {
-    this._loading.set(true);
-    return this.http.get(this.apiUrl + url, { responseType: 'blob' }).pipe(
-      tap(() => {
-        if (this.debugMode) { console.log(\`[DOWNLOAD] \${url}\`); }
-      }),
-      catchError(error => this.handleError(error, 'DOWNLOAD', url)),
-      finalize(() => this._loading.set(false))
-    );
-  }
-
-  getFile(url: string): Observable<Blob> {
-    return this.http.get(url, { responseType: 'blob' });
-  }
-
-  buildUrlWithParams(baseUrl: string, params: Record<string, any>): string {
-    const queryParams = new URLSearchParams();
-    Object.keys(params).forEach(key => {
-      if (params[key] !== null && params[key] !== undefined) {
-        queryParams.append(key, params[key].toString());
-      }
-    });
-    const queryString = queryParams.toString();
-    return queryString ? \`\${baseUrl}?\${queryString}\` : baseUrl;
   }
 
   private handleError(error: HttpErrorResponse, method: string, url: string): Observable<never> {
@@ -572,25 +541,20 @@ function createGuards(basePath) {
     // AuthGuard
     const authGuardPath = path.join(guardsPath, 'auth.guard.ts');
     if (!fs.existsSync(authGuardPath)) {
-        const authGuardContent = `import { inject, Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+        const authGuardContent = `import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { CoreService } from '../services/core.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate {
-  private coreService = inject(CoreService);
-  private router = inject(Router);
+export const AuthGuard: CanActivateFn = (route, state) => {
+  const coreService = inject(CoreService);
+  const router = inject(Router);
 
-  canActivate() {
-    if (!this.coreService.isAuthenticated()) {
-      this.router.navigate(['/login']);
-      return false;
-    }
-    return true;
+  if (!coreService.isAuthenticated()) {
+    router.navigate(['/login']);
+    return false;
   }
-}
+  return true;
+};
 `;
         fs.writeFileSync(authGuardPath, authGuardContent);
         console.log('✅ Créé: core/guards/auth.guard.ts');
@@ -601,25 +565,20 @@ export class AuthGuard implements CanActivate {
     // GuestGuard
     const guestGuardPath = path.join(guardsPath, 'guest.guard.ts');
     if (!fs.existsSync(guestGuardPath)) {
-        const guestGuardContent = `import { inject, Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+        const guestGuardContent = `import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { CoreService } from '../services/core.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class GuestGuard implements CanActivate {
-  private coreService = inject(CoreService);
-  private router = inject(Router);
+export const GuestGuard: CanActivateFn = (route, state) => {
+  const coreService = inject(CoreService);
+  const router = inject(Router);
 
-  canActivate() {
-    if (this.coreService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
-      return false;
-    }
-    return true;
+  if (coreService.isAuthenticated()) {
+    router.navigate(['/dashboard']);
+    return false;
   }
-}
+  return true;
+};
 `;
         fs.writeFileSync(guestGuardPath, guestGuardContent);
         console.log('✅ Créé: core/guards/guest.guard.ts');
@@ -683,17 +642,19 @@ function createAppConfig(basePath) {
 
     // Si le fichier n'existe pas, créer un fichier minimal
     if (!fs.existsSync(configPath)) {
-        const configContent = `import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+        const configContent = `import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { HttpInterceptor } from './core/interceptors/http.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideZonelessChangeDetection(),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
+      withFetch(),
       withInterceptors([HttpInterceptor])
     )
   ]
@@ -704,51 +665,27 @@ export const appConfig: ApplicationConfig = {
         return;
     }
 
-    let content = fs.readFileSync(configPath, 'utf8');
-    let modified = false;
+    // Overwrite the file to ensure Zoneless and withComponentInputBinding are present
+    const configContent = `import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 
-    // Ajouter l'import HttpClient si absent
-    if (!content.includes('provideHttpClient')) {
-        const httpImport = `import { provideHttpClient, withInterceptors } from '@angular/common/http';`;
-        // Insérer après le dernier import existant
-        const lastImportMatch = [...content.matchAll(/^import .+;$/gm)].pop();
-        if (lastImportMatch) {
-            const insertPos = lastImportMatch.index + lastImportMatch[0].length;
-            content = content.slice(0, insertPos) + '\n' + httpImport + content.slice(insertPos);
-        }
-        modified = true;
-    }
+import { routes } from './app.routes';
+import { HttpInterceptor } from './core/interceptors/http.interceptor';
 
-    // Ajouter l'import de l'intercepteur si absent
-    if (!content.includes('HttpInterceptor')) {
-        const interceptorImport = `import { HttpInterceptor } from './core/interceptors/http.interceptor';`;
-        const lastImportMatch = [...content.matchAll(/^import .+;$/gm)].pop();
-        if (lastImportMatch) {
-            const insertPos = lastImportMatch.index + lastImportMatch[0].length;
-            content = content.slice(0, insertPos) + '\n' + interceptorImport + content.slice(insertPos);
-        }
-        modified = true;
-    }
-
-    // Ajouter provideHttpClient dans le tableau providers si absent
-    if (!content.includes('provideHttpClient')) {
-        const providersMatch = content.match(/(providers:\s*\[)([\s\S]*?)(\n\s*\])/);
-        if (providersMatch) {
-            const providerEntry = `\n    provideHttpClient(\n      withInterceptors([HttpInterceptor])\n    )`;
-            const existingProviders = providersMatch[2];
-            const needsComma = existingProviders.trim().length > 0 && !existingProviders.trimEnd().endsWith(',');
-            const newProviders = existingProviders + (needsComma ? ',' : '') + providerEntry;
-            content = content.replace(providersMatch[0], providersMatch[1] + newProviders + providersMatch[3]);
-        }
-        modified = true;
-    }
-
-    if (modified) {
-        fs.writeFileSync(configPath, content);
-        console.log('✅ app.config.ts mis à jour (HttpClient + intercepteur ajoutés).');
-    } else {
-        console.log('ℹ️  app.config.ts déjà configuré avec HttpClient et l\'intercepteur.');
-    }
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZonelessChangeDetection(),
+    provideRouter(routes, withComponentInputBinding()),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([HttpInterceptor])
+    )
+  ]
+};
+`;
+    fs.writeFileSync(configPath, configContent);
+    console.log('✅ app.config.ts mis à jour (Zoneless, Router, HttpClient).');
 }
 
 /**
@@ -777,7 +714,7 @@ import { RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [RouterOutlet],
   templateUrl: './main-layout.html',
-  styleUrls: ['./main-layout.scss']
+  styleUrl: './main-layout.scss'
 })
 export class MainLayout {}
 `;
@@ -1001,12 +938,17 @@ export const routes: Routes = [
     {
         path: 'dashboard',
         loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES)
+    },
+    {
+        path: '**',
+        title: 'Page introuvable',
+        redirectTo: ''
     }
 ];
 `;
 
     fs.writeFileSync(routesPath, routesContent);
-    console.log('✅ app.routes.ts mis à jour avec les modules par défaut.');
+    console.log('✅ app.routes.ts mis à jour avec les modules par défaut et route fallback.');
 }
 
 /**
@@ -1078,6 +1020,17 @@ function updateAngularJson() {
             project.architect.serve.defaultConfiguration = 'development';
         }
 
+        // Configuration des Schematics pour imposer les suffixes de type
+        angularJson.schematics = angularJson.schematics || {};
+        const schematics = ['component', 'service', 'directive', 'pipe', 'guard'];
+        schematics.forEach(type => {
+            const key = `@schematics/angular:${type}`;
+            angularJson.schematics[key] = angularJson.schematics[key] || {};
+            if (type !== 'guard') {
+                angularJson.schematics[key].type = type;
+            }
+        });
+
         fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
         console.log('✅ angular.json mis à jour.');
 
@@ -1123,6 +1076,85 @@ function updateTsConfig() {
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de tsconfig.json:', error.message);
+    }
+}
+
+function configureCssFramework(framework) {
+    if (framework === 'bootstrap') {
+        console.log('\n🎨 Configuration de Bootstrap...');
+        shelljs.exec('npm install bootstrap', { silent: false });
+        
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+                
+                if (architect && architect.build && architect.build.options) {
+                    architect.build.options.styles = architect.build.options.styles || [];
+                    architect.build.options.scripts = architect.build.options.scripts || [];
+                    
+                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css')) {
+                        architect.build.options.styles.unshift('node_modules/bootstrap/dist/css/bootstrap.min.css');
+                    }
+                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js')) {
+                        architect.build.options.scripts.push('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
+                    }
+                    
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                    console.log('✅ angular.json mis à jour avec les assets Bootstrap.');
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors de la configuration Bootstrap dans angular.json:', e.message);
+            }
+        }
+    } else if (framework === 'tailwind') {
+        console.log('\n🎨 Configuration de Tailwind CSS...');
+        shelljs.exec('npm install -D tailwindcss postcss autoprefixer', { silent: false });
+        shelljs.exec('npx tailwindcss init', { silent: false });
+        
+        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+        
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            const tailwindDirectives = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n`;
+            if (!content.includes('@tailwind')) {
+                fs.writeFileSync(styleFile, tailwindDirectives + content);
+                console.log('✅ Fichier styles mis à jour avec les directives Tailwind.');
+            }
+        } else {
+            console.warn('⚠️  Fichier styles.scss/css introuvable pour ajouter les directives Tailwind.');
+        }
+    } else if (framework === 'custom') {
+        console.log('\n🎨 Configuration du CSS Custom (Reset de base)...');
+        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+        
+        if (styleFile) {
+            const customReset = `/* Global Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f9f9f9;
+}
+`;
+            let content = fs.readFileSync(styleFile, 'utf8');
+            if (!content.includes('box-sizing')) {
+                fs.writeFileSync(styleFile, customReset + '\n' + content);
+                console.log('✅ Fichier styles mis à jour avec le reset CSS custom.');
+            }
+        }
     }
 }
 

@@ -25,20 +25,20 @@ function createDirectiveFile(directivesPath, directiveName) {
     }
 
     // Contenu de la directive
-    const directiveContent = `import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+    const directiveContent = `import { Directive, ElementRef, HostListener, input, inject } from '@angular/core';
 
 @Directive({
   selector: '[app${pascalName}]',${standaloneFlag}
 })
 export class ${pascalName}Directive {
-  // Exemple d'Input (optionnel)
-  // @Input() app${pascalName}Color: string = 'yellow';
+  // Exemple d'utilisation avec input() (Angular 22+)
+  // app${pascalName}Color = input<string>('yellow');
 
-  constructor(private el: ElementRef) {}
+  private el = inject(ElementRef);
 
   // Exemple d'utilisation avec HostListener
   // @HostListener('mouseenter') onMouseEnter() {
-  //   this.highlight(this.app${pascalName}Color);
+  //   this.highlight(this.app${pascalName}Color());
   // }
 
   // @HostListener('mouseleave') onMouseLeave() {

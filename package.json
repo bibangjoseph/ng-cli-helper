@@ -1,6 +1,6 @@
 {
   "name": "angular-cli-helper",
-  "version": "6.3.0",
+  "version": "7.0.0",
   "main": "index.js",
   "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
   "bin": {
@@ -16,6 +16,7 @@
     "angular-cli-help": "./src/help.js"
   },
   "scripts": {
+    "test": "vitest run",
     "init": "init-project",
     "g:component": "create-component",
     "g:service": "create-service",
@@ -51,8 +52,11 @@
     "inquirer": "^12.0.1",
     "shelljs": "^0.8.5"
   },
+  "peerDependencies": {
+    "@angular/core": "^22.0.0"
+  },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=18.19.1",
     "npm": ">=9.0.0"
   },
   "type": "module",
@@ -61,5 +65,8 @@
     "index.js",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.10"
+  }
 }

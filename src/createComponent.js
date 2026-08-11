@@ -67,7 +67,7 @@ async function createComponent() {
   selector: '${selector}',${standaloneFlag}
   imports: [],
   templateUrl: './${folderName}.component.html',
-  styleUrls: ['./${folderName}.component.scss']
+  styleUrl: './${folderName}.component.scss'
 })
 export class ${className} {}
 `;

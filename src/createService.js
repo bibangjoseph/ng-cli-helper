@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
-import { toPascalCase, toKebabCase, isAngularProject, setupErrorHandlers } from './utils.js';
+import { toPascalCase, toKebabCase, isAngularProject, setupErrorHandlers, getAvailableModules } from './utils.js';
 
 setupErrorHandlers();
 
@@ -17,7 +17,9 @@ async function createService() {
     }
 
     try {
-        const { serviceName } = await inquirer.prompt([
+        const modules = getAvailableModules();
+
+        const { serviceName, isGlobal, moduleName } = await inquirer.prompt([
             {
                 name: 'serviceName',
                 message: 'Quel est le nom du service ?',
@@ -26,10 +28,37 @@ async function createService() {
                     if (!/^[a-zA-Z0-9\s\-_]+$/.test(input)) return 'Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et underscores.';
                     return true;
                 }
+            },
+            {
+                type: 'confirm',
+                name: 'isGlobal',
+                message: 'Est-ce un service transverse (core) ?',
+                default: true
+            },
+            {
+                type: 'list',
+                name: 'moduleName',
+                message: 'Dans quelle feature ?',
+                choices: modules,
+                when: answers => !answers.isGlobal,
+                validate: answer => {
+                    if (modules.length === 0) {
+                        return 'Aucune feature trouvée. Veuillez d\'abord en créer une.';
+                    }
+                    return true;
+                }
             }
         ]);
 
-        const targetPath = path.join(process.cwd(), 'src', 'app', 'core', 'services');
+        if (!isGlobal && modules.length === 0) {
+            console.error('❌ Erreur: Aucune feature trouvée. Créez d\'abord un module avec npm run g:package.');
+            process.exit(1);
+        }
+
+        const targetPath = isGlobal 
+            ? path.join(process.cwd(), 'src', 'app', 'core', 'services')
+            : path.join(process.cwd(), 'src', 'app', 'features', moduleName, 'services');
+
         shelljs.mkdir('-p', targetPath);
 
         const kebabName = toKebabCase(serviceName);
@@ -38,15 +67,14 @@ async function createService() {
         const specFile = path.join(targetPath, `${kebabName}.service.spec.ts`);
 
         if (fs.existsSync(tsFile)) {
-            console.error(`\n❌ Le service "${kebabName}" existe déjà dans core/services/\n`);
+            console.error(`\n❌ Le service "${kebabName}" existe déjà dans ${isGlobal ? 'core/services' : `features/${moduleName}/services`}\n`);
             process.exit(1);
         }
 
+        const providedIn = isGlobal ? `{\n  providedIn: 'root'\n}` : '';
         const tsContent = `import { Injectable } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable(${providedIn})
 export class ${className} {}
 `;
 
@@ -57,8 +85,9 @@ describe('${className}', () => {
   let service: ${className};
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(${className});
+${isGlobal ? '    TestBed.configureTestingModule({});\n' : `    TestBed.configureTestingModule({
+      providers: [${className}]
+    });\n`}    service = TestBed.inject(${className});
   });
 
   it('should be created', () => {
@@ -72,6 +101,11 @@ describe('${className}', () => {
 
         console.log(`\n✅ Service "${serviceName}" créé avec succès!`);
         console.log(`📁 Emplacement: ${targetPath}`);
+        
+        if (!isGlobal) {
+            console.log(`\n⚠️  N'oubliez pas d'ajouter ce service dans le tableau des providers de features/${moduleName}/routes.ts`);
+        }
+
         console.log('\n📂 Fichiers créés:');
         console.log(`   ├── ${kebabName}.service.ts`);
         console.log(`   └── ${kebabName}.service.spec.ts\n`);

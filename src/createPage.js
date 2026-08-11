@@ -31,6 +31,7 @@ function updateModuleRoutes(modulePath, moduleName, folderName, className) {
 
         const newRoute = `            {
                 path: '${routePath}',
+                title: '${toPascalCase(pageName)}',
                 loadComponent: () => import('./views/${folderName}/${folderName}.page').then(m => m.${className})
             }`;
 
@@ -147,7 +148,7 @@ import { ApiService } from '@/core/services/api.service';
   selector: '${selector}',${standaloneFlag}
   imports: [],
   templateUrl: './${folderName}.page.html',
-  styleUrls: ['./${folderName}.page.scss']
+  styleUrl: './${folderName}.page.scss'
 })
 export class ${className} {
   private apiService = inject(ApiService);
