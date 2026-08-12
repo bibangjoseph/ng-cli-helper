@@ -1,0 +1,136 @@
+import fs from 'fs';
+import path from 'path';
+import shelljs from 'shelljs';
+
+export function cleanCssTraces(frameworkToRemove) {
+    const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+    const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+    const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+
+    if (frameworkToRemove === 'tailwind') {
+        console.log('🧹 Nettoyage des traces de Tailwind CSS...');
+        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer', { silent: true });
+
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            content = content.replace(/@import\s+['"]tailwindcss['"];?\n?/g, '');
+            content = content.replace(/@tailwind\s+(base|components|utilities);?\n?/g, '');
+            fs.writeFileSync(styleFile, content);
+        }
+    } else if (frameworkToRemove === 'bootstrap') {
+        console.log('🧹 Nettoyage des traces de Bootstrap...');
+        shelljs.exec('npm uninstall bootstrap', { silent: true });
+
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            content = content.replace(/@import\s+['"]bootstrap\/scss\/bootstrap['"];?\n?/g, '');
+            content = content.replace(/@import\s+['"]bootstrap\/dist\/css\/bootstrap\.min\.css['"];?\n?/g, '');
+            fs.writeFileSync(styleFile, content);
+        }
+
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+
+                if (architect && architect.build && architect.build.options && architect.build.options.scripts) {
+                    architect.build.options.scripts = architect.build.options.scripts.filter(script =>
+                        !script.includes('bootstrap')
+                    );
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                }
+            } catch (e) {
+                // Silently ignore if angular.json cannot be parsed during cleanup
+            }
+        }
+    }
+}
+
+export function configureCssFramework(framework) {
+    if (framework === 'bootstrap') {
+        cleanCssTraces('tailwind');
+        console.log('\n🎨 Configuration de Bootstrap...');
+        shelljs.exec('npm install bootstrap', { silent: false });
+
+        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            const isScss = styleFile.endsWith('.scss');
+
+            // Pour le SCSS, on importe le code source SASS de Bootstrap. Pour le CSS, on importe le fichier minifié.
+            const bootstrapImport = isScss
+                ? `@import 'bootstrap/scss/bootstrap';\n\n`
+                : `@import 'bootstrap/dist/css/bootstrap.min.css';\n\n`;
+
+            if (!content.includes('bootstrap')) {
+                fs.writeFileSync(styleFile, bootstrapImport + content);
+                console.log("✅ Fichier styles mis à jour avec l'import de Bootstrap.");
+            }
+        } else {
+            console.warn("⚠️  Fichier styles.scss/css introuvable pour ajouter l'import de Bootstrap.");
+        }
+
+        // On injecte également le JS de Bootstrap dans angular.json
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+
+                if (architect && architect.build && architect.build.options) {
+                    architect.build.options.scripts = architect.build.options.scripts || [];
+
+                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') &&
+                        !architect.build.options.scripts.includes('bootstrap/dist/js/bootstrap.bundle.min.js')) {
+                        architect.build.options.scripts.push('bootstrap/dist/js/bootstrap.bundle.min.js');
+                    }
+
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                    console.log('✅ angular.json mis à jour avec les scripts Bootstrap.');
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors de la configuration Bootstrap dans angular.json:', e.message);
+            }
+        }
+    } else if (framework === 'tailwind') {
+        cleanCssTraces('bootstrap');
+        console.log('\n🎨 Configuration de Tailwind CSS...');
+        shelljs.exec('ng add tailwindcss --skip-confirmation', { silent: false });
+        console.log('✅ Tailwind CSS installé et configuré.');
+    } else if (framework === 'custom') {
+        cleanCssTraces('tailwind');
+        cleanCssTraces('bootstrap');
+        console.log('\n🎨 Configuration du CSS Custom (Reset de base)...');
+        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+
+        if (styleFile) {
+            const customReset = `/* Global Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f9f9f9;
+}
+`;
+            let content = fs.readFileSync(styleFile, 'utf8');
+            if (!content.includes('box-sizing')) {
+                fs.writeFileSync(styleFile, customReset + '\n' + content);
+                console.log('✅ Fichier styles mis à jour avec le reset CSS custom.');
+            }
+        }
+    }
+}
