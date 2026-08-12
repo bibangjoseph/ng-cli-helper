@@ -146,7 +146,7 @@ export class ApiService {
         break;
       case 401:
         console.warn('Session expirée. Redirection vers la page de connexion...');
-        this.coreService.clearToken();
+        this.coreService.logout();
         this.router.navigate(['/']);
         break;
       case 422:

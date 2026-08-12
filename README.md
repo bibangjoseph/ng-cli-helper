@@ -82,26 +82,45 @@ npm run g:page
 npm run g:init
 ```
 
-Automatically creates the following structure inside your Angular project:
+During setup you'll be asked which CSS approach to use:
+
+```
+? Quel framework CSS souhaitez-vous utiliser ?
+  ❯ Tailwind CSS
+    Bootstrap
+    CSS Custom (aucun framework)
+```
+
+- **Tailwind CSS** — runs `ng add tailwindcss` for you
+- **Bootstrap** — installs the package, imports it in `styles.scss`/`styles.css`, and registers its JS bundle in `angular.json`
+- **CSS Custom** — applies a minimal reset (`box-sizing`, base typography), no framework installed
+
+Re-running `g:init` after picking a different framework automatically removes the previous one's imports and `angular.json` entries.
+
+It then automatically creates the following structure inside your Angular project:
 
 ```
 src/
 ├── app/
 │   ├── core/
+│   │   ├── config/
+│   │   │   └── menu.ts                # Menu definition + active-link & permission helpers
 │   │   ├── services/
-│   │   │   ├── api.service.ts        # Full HTTP service
-│   │   │   └── core.service.ts       # Auth & user management
+│   │   │   ├── api.service.ts         # Full HTTP service
+│   │   │   ├── core.service.ts        # Auth & user management
+│   │   │   └── menu.service.ts        # Filtered menu (signals) + active-link helpers
 │   │   ├── guards/
-│   │   │   ├── auth.guard.ts         # Protects authenticated routes
-│   │   │   └── guest.guard.ts        # Protects public routes
+│   │   │   ├── auth.guard.ts          # Protects authenticated routes
+│   │   │   └── guest.guard.ts         # Protects public routes
 │   │   └── interceptors/
-│   │       └── http.interceptor.ts   # Auto JWT injection
+│   │       └── http.interceptor.ts    # Auto JWT injection
 │   ├── shared/
 │   │   ├── components/
+│   │   │   └── app-nav-menu/          # Recursive nav component (routes, icons, sub-menus)
 │   │   ├── directives/
 │   │   └── pipes/
 │   ├── layout/
-│   │   └── main-layout/              # Main layout component
+│   │   └── main-layout/              # Sidebar + router-outlet, wired to app-nav-menu
 │   ├── features/
 │   │   ├── auth/                     # Default auth module (GuestGuard)
 │   │   └── dashboard/                # Default dashboard module (AuthGuard)
@@ -117,6 +136,54 @@ src/
 - `angular.json` — `fileReplacements` for production build
 - `tsconfig.json` — `@/*` path alias pointing to `src/app/*`
 - `app.config.ts` — `provideHttpClient` + interceptor added (existing file preserved)
+
+---
+
+### 🧭 Navigation & menu system
+
+`core/config/menu.ts` centralizes your navigation, with active-link detection and role/permission filtering built in:
+
+```typescript
+export interface MenuItem {
+  id: string;
+  title: string;
+  route?: string;
+  icon?: string;
+  permissions?: string[];  // user needs at least one of these
+  roles?: string[];        // user needs at least one of these
+  children?: MenuItem[];   // sub-menus
+  exact?: boolean;         // strict route match for the active link
+}
+
+export const APP_MENU: MenuItem[] = [
+  { id: 'dashboard', title: 'Dashboard', route: '/dashboard', icon: 'home' },
+  {
+    id: 'administration',
+    title: 'Administration',
+    icon: 'settings',
+    roles: ['admin'],
+    permissions: ['admin.access'],
+    children: [
+      { id: 'users-list', title: 'Users', route: '/admin/users', icon: 'users', permissions: ['users.read'] },
+    ],
+  },
+];
+```
+
+`MenuService` (`core/services/menu.service.ts`) exposes the menu already filtered for the logged-in user, plus active-link helpers:
+
+```typescript
+import { inject } from '@angular/core';
+import { MenuService } from '@/core/services/menu.service';
+
+export class MyComponent {
+  private menuService = inject(MenuService);
+
+  menu = this.menuService.visibleMenu; // computed signal, filtered by roles/permissions
+}
+```
+
+`AppNavMenuComponent` (`shared/components/app-nav-menu/`) renders it recursively — routes, icons, nested sub-menus, and active-link highlighting — and is already wired into the generated `main-layout`.
 
 ---
 
@@ -449,30 +516,18 @@ npm run g:model     # e.g. "product" in "products"
 
 ## 🔑 API Service features
 
-The generated `ApiService` includes:
+The generated `ApiService` wraps `HttpClient` with signals for loading state and backend validation errors:
 
 ```typescript
-// Standard HTTP methods
+// Standard HTTP methods (all return Observable<T>)
 this.apiService.get<Product[]>('/products').subscribe();
 this.apiService.post<Product>('/products', data).subscribe();
 this.apiService.put<Product>('/products/1', data).subscribe();
 this.apiService.patch<Product>('/products/1', { name: 'X' }).subscribe();
 this.apiService.delete('/products/1').subscribe();
 
-// Paginated GET
-this.apiService.getPaginate<Product>('/products?page=1').subscribe();
-
-// File upload
-this.apiService.uploadFile('/upload', file).subscribe();
-
-// File download
-this.apiService.downloadFile('/export/pdf').subscribe(blob => { });
-
-// Get a file by URL
-this.apiService.getFile(url).subscribe(blob => { });
-
-// Build URL with query params
-const url = this.apiService.buildUrlWithParams('/products', { page: 1, limit: 10 });
+// GET via httpResource() (Angular 22+) — reactive resource with built-in loading/error state
+productsResource = this.apiService.getResource<Product[]>('/products');
 ```
 
 **Automatic error handling:**
@@ -480,7 +535,7 @@ const url = this.apiService.buildUrlWithParams('/products', { page: 1, limit: 10
 | HTTP status | Behavior |
 |-------------|----------|
 | `0`         | Logs a network error message |
-| `401`       | Clears token + redirects to `/` |
+| `401`       | Logs the user out (clears token + user) and redirects to `/` |
 | `422`       | Stores validation errors in `backendErrors` signal |
 | Other       | Logs the error message |
 
@@ -537,6 +592,14 @@ ng build --configuration production
 
 ---
 
+## 🆕 What's new in v7.0.0
+
+- ✅ **Zoneless by default** — `app.config.ts` is generated with `provideZonelessChangeDetection()`
+- ✅ **`httpResource()` support** — `ApiService.getResource()` exposes a reactive resource (Angular 22+) alongside the classic `get/post/put/patch/delete` methods
+- ✅ **CSS framework choice** — `g:init` now asks whether to set up Tailwind CSS, Bootstrap, or a custom reset, and cleans up the previous choice if you switch
+- ✅ **Menu & navigation system** — `g:init` generates `core/config/menu.ts`, `core/services/menu.service.ts`, and a recursive `AppNavMenuComponent`, with built-in active-link detection and role/permission filtering
+- ✅ **`initProject.js` split into focused modules** — internal generator logic now lives under `src/init/` (one file per concern) instead of a single monolithic script
+
 ## 🆕 What's new in v6.3.0
 
 - ✅ **Spec files generated by default** — Every artifact (component, page, service, guard, directive, pipe) now generates its `.spec.ts` file automatically
@@ -580,7 +643,7 @@ MIT © BIBANG BEFENE Joseph Donovan
 
 - 📦 [npm](https://www.npmjs.com/package/angular-cli-helper)
 - 🐙 [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
-- 📧 Contact: bibangjoseph@gmail.com
+- 📧 Contact: bibangjose@gmail.com
 
 ---
 
