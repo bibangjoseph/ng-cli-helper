@@ -887,7 +887,7 @@ async function createModule(featuresPath, moduleName, guardType) {
     }
 
     // Créer la structure
-    const folders = ['views', 'models', 'components'];
+    const folders = ['views', 'models', 'components', 'services'];
     shelljs.mkdir('-p', modulePath);
 
     folders.forEach(folder => {
@@ -1053,7 +1053,9 @@ function updateTsConfig() {
     }
 
     try {
-        const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
+        const tsconfigRaw = fs.readFileSync(tsconfigPath, 'utf8');
+        const tsconfigCleaned = tsconfigRaw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '');
+        const tsconfig = JSON.parse(tsconfigCleaned);
 
         if (!tsconfig.compilerOptions) {
             tsconfig.compilerOptions = {};
@@ -1084,6 +1086,28 @@ function configureCssFramework(framework) {
         console.log('\n🎨 Configuration de Bootstrap...');
         shelljs.exec('npm install bootstrap', { silent: false });
         
+        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+        
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            const isScss = styleFile.endsWith('.scss');
+            
+            // Pour le SCSS, on importe le code source SASS de Bootstrap. Pour le CSS, on importe le fichier minifié.
+            const bootstrapImport = isScss 
+                ? `@import 'bootstrap/scss/bootstrap';\n\n`
+                : `@import 'bootstrap/dist/css/bootstrap.min.css';\n\n`;
+                
+            if (!content.includes('bootstrap')) {
+                fs.writeFileSync(styleFile, bootstrapImport + content);
+                console.log("✅ Fichier styles mis à jour avec l'import de Bootstrap.");
+            }
+        } else {
+            console.warn("⚠️  Fichier styles.scss/css introuvable pour ajouter l'import de Bootstrap.");
+        }
+
+        // On injecte également le JS de Bootstrap dans angular.json
         const angularJsonPath = path.join(process.cwd(), 'angular.json');
         if (fs.existsSync(angularJsonPath)) {
             try {
@@ -1092,18 +1116,15 @@ function configureCssFramework(framework) {
                 const architect = angularJson.projects[projectName].architect;
                 
                 if (architect && architect.build && architect.build.options) {
-                    architect.build.options.styles = architect.build.options.styles || [];
                     architect.build.options.scripts = architect.build.options.scripts || [];
                     
-                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css')) {
-                        architect.build.options.styles.unshift('node_modules/bootstrap/dist/css/bootstrap.min.css');
-                    }
-                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js')) {
-                        architect.build.options.scripts.push('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
+                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') &&
+                        !architect.build.options.scripts.includes('bootstrap/dist/js/bootstrap.bundle.min.js')) {
+                        architect.build.options.scripts.push('bootstrap/dist/js/bootstrap.bundle.min.js');
                     }
                     
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
-                    console.log('✅ angular.json mis à jour avec les assets Bootstrap.');
+                    console.log('✅ angular.json mis à jour avec les scripts Bootstrap.');
                 }
             } catch (e) {
                 console.error('❌ Erreur lors de la configuration Bootstrap dans angular.json:', e.message);
@@ -1111,23 +1132,8 @@ function configureCssFramework(framework) {
         }
     } else if (framework === 'tailwind') {
         console.log('\n🎨 Configuration de Tailwind CSS...');
-        shelljs.exec('npm install -D tailwindcss postcss autoprefixer', { silent: false });
-        shelljs.exec('npx tailwindcss init', { silent: false });
-        
-        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
-        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
-        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
-        
-        if (styleFile) {
-            let content = fs.readFileSync(styleFile, 'utf8');
-            const tailwindDirectives = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n`;
-            if (!content.includes('@tailwind')) {
-                fs.writeFileSync(styleFile, tailwindDirectives + content);
-                console.log('✅ Fichier styles mis à jour avec les directives Tailwind.');
-            }
-        } else {
-            console.warn('⚠️  Fichier styles.scss/css introuvable pour ajouter les directives Tailwind.');
-        }
+        shelljs.exec('ng add tailwindcss --skip-confirmation', { silent: false });
+        console.log('✅ Tailwind CSS installé et configuré.');
     } else if (framework === 'custom') {
         console.log('\n🎨 Configuration du CSS Custom (Reset de base)...');
         const scssPath = path.join(process.cwd(), 'src', 'styles.scss');

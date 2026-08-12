@@ -8,7 +8,7 @@ import { toKebabCase, toConstantCase, toPascalCase, isAngularProject } from './u
 function createPackageStructure(modulePath, moduleName) {
     console.log(`\n📦 Création du package "${moduleName}"...\n`);
 
-    const folders = ['views', 'models', 'components'];
+    const folders = ['views', 'models', 'components', 'services'];
 
     folders.forEach(folder => {
         const folderPath = path.join(modulePath, folder);
@@ -83,6 +83,7 @@ ${moduleName}/
 ├── components/     # Composants réutilisables du module
 ├── views/          # Pages/vues du module
 ├── models/         # Interfaces et types
+├── services/       # Services spécifiques à la feature
 └── routes.ts       # Configuration des routes (lazy loading)
 \`\`\`
 
@@ -288,6 +289,7 @@ async function createPackage() {
     ├── components/
     ├── views/
     ├── models/
+    ├── services/
     ├── routes.ts${guardType ? ` (protégé par ${guardType})` : ''}
     └── README.md
         `);

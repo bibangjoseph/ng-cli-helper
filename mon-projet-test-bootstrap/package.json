@@ -1,0 +1,43 @@
+{
+  "name": "mon-projet-test-bootstrap",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "g:init": "init-project",
+    "g:component": "create-component",
+    "g:service": "create-service",
+    "g:model": "create-model",
+    "g:page": "create-page",
+    "g:package": "create-package",
+    "g:guard": "create-guard",
+    "g:directive": "create-directive",
+    "g:pipe": "create-pipe",
+    "help": "angular-cli-help"
+  },
+  "private": true,
+  "packageManager": "npm@11.13.0",
+  "dependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "bootstrap": "^5.3.8",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.8",
+    "@angular/cli": "^22.0.8",
+    "@angular/compiler-cli": "^22.0.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
+  }
+}
