@@ -10,17 +10,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Initialise la structure complète du projet Angular
+ * Initialise la structure compl?te du projet Angular
  */
 async function initProject() {
-    console.log('\n🚀 Angular CLI Helper - Initialisation du projet\n');
-    console.log('🛠  Création de la structure de base du projet...\n');
+    console.log('\n?? Angular CLI Helper - Initialisation du projet\n');
+    console.log('??  Cr?ation de la structure de base du projet...\n');
 
     try {
-        // Vérifier qu'on est bien dans un projet Angular
+        // V?rifier qu'on est bien dans un projet Angular
         if (!isAngularProject()) {
-            console.error('❌ Erreur: Ce n\'est pas un projet Angular.');
-            console.error('💡 Assurez-vous d\'être dans le dossier racine d\'un projet Angular.\n');
+            console.error('? Erreur: Ce n\'est pas un projet Angular.');
+            console.error('?? Assurez-vous d\'?tre dans le dossier racine d\'un projet Angular.\n');
             process.exit(1);
         }
 
@@ -39,10 +39,15 @@ async function initProject() {
 
         const basePath = path.join(process.cwd(), 'src', 'app');
 
-        // Créer la structure de dossiers
+        // Cr?er la structure de dossiers
         createFolderStructure(basePath);
 
-        // Créer les fichiers d'environnement
+        // Cr?er la configuration du menu (routes, ic?nes, sous-menus, permissions)
+        createMenuConfig(basePath);
+        createMenuService(basePath);
+        createAppNavMenu(basePath);
+
+        // Cr?er les fichiers d'environnement
         createEnvironmentFiles();
 
         // Modifier angular.json pour fileReplacements
@@ -51,85 +56,85 @@ async function initProject() {
         // Ajouter l'alias @/* dans tsconfig.json
         updateTsConfig();
 
-        // Créer le service Core
+        // Cr?er le service Core
         createCoreService(basePath);
 
-        // Créer le service API
+        // Cr?er le service API
         createApiService(basePath);
 
-        // Créer les guards
+        // Cr?er les guards
         createGuards(basePath);
 
-        // Créer l'interceptor
+        // Cr?er l'interceptor
         createHttpInterceptor(basePath);
 
-        // Créer/Mettre à jour app.config.ts
+        // Cr?er/Mettre ? jour app.config.ts
         createAppConfig(basePath);
 
-        // Générer le main-layout
+        // G?n?rer le main-layout
         generateMainLayout();
 
         // Remplacer app.component
         replaceAppComponent(basePath);
 
-        // Créer app.routes.ts si inexistant
+        // Cr?er app.routes.ts si inexistant
         createAppRoutes(basePath);
 
-        // Créer les modules par défaut
+        // Cr?er les modules par d?faut
         await createDefaultModules(basePath);
 
         // Configurer le framework CSS
         configureCssFramework(cssFramework);
 
-        console.log('\n✅ Structure du projet créée avec succès!\n');
-        console.log('📂 Structure générée:');
+        console.log('\n? Structure du projet cr??e avec succ?s!\n');
+        console.log('?? Structure g?n?r?e:');
         console.log(`
     src/
-    ├── app/
-    │   ├── core/
-    │   │   ├── services/
-    │   │   │   ├── api.service.ts
-    │   │   │   └── core.service.ts
-    │   │   ├── guards/
-    │   │   │   ├── auth.guard.ts
-    │   │   │   └── guest.guard.ts
-    │   │   └── interceptors/
-    │   │       └── http.interceptor.ts
-    │   ├── shared/
-    │   │   ├── components/
-    │   │   ├── directives/
-    │   │   └── pipes/
-    │   ├── layout/
-    │   │   └── main-layout/
-    │   ├── features/
-    │   │   ├── auth/
-    │   │   └── dashboard/
-    │   ├── app.ts
-    │   ├── app.config.ts
-    │   └── app.routes.ts
-    └── environments/
-        ├── environment.ts
-        └── environment.prod.ts
+    ??? app/
+    ?   ??? core/
+    ?   ?   ??? services/
+    ?   ?   ?   ??? api.service.ts
+    ?   ?   ?   ??? core.service.ts
+    ?   ?   ??? guards/
+    ?   ?   ?   ??? auth.guard.ts
+    ?   ?   ?   ??? guest.guard.ts
+    ?   ?   ??? interceptors/
+    ?   ?       ??? http.interceptor.ts
+    ?   ??? shared/
+    ?   ?   ??? components/
+    ?   ?   ??? directives/
+    ?   ?   ??? pipes/
+    ?   ??? layout/
+    ?   ?   ??? main-layout/
+    ?   ??? features/
+    ?   ?   ??? auth/
+    ?   ?   ??? dashboard/
+    ?   ??? app.ts
+    ?   ??? app.config.ts
+    ?   ??? app.routes.ts
+    ??? environments/
+        ??? environment.ts
+        ??? environment.prod.ts
         `);
 
-        console.log('💡 Prochaines étapes:');
-        console.log('   - Modules "auth" et "dashboard" créés par défaut');
-        console.log('   - Utilisez "npm run g:package" pour créer d\'autres modules');
-        console.log('   - Utilisez "npm run g:page" pour créer des pages');
+        console.log('?? Prochaines ?tapes:');
+        console.log('   - Modules "auth" et "dashboard" cr??s par d?faut');
+        console.log('   - Utilisez "npm run g:package" pour cr?er d\'autres modules');
+        console.log('   - Utilisez "npm run g:page" pour cr?er des pages');
         console.log('   - Le service API est disponible dans core/services/api.service.ts');
-        console.log('   - Le service Core gère l\'authentification');
+        console.log('   - Le service Core g?re l\'authentification');
         console.log('   - Les guards AuthGuard et GuestGuard sont disponibles');
-        console.log('   - L\'interceptor HTTP est configuré pour injecter le token\n');
+        console.log('   - L\'interceptor HTTP est configur? pour injecter le token\n');
 
     } catch (error) {
-        console.error('❌ Erreur lors de l\'initialisation:', error.message);
+        console.error('? Erreur lors de l\'initialisation:', error.message);
         console.error(error.stack);
         process.exit(1);
     }
 }
 
 /**
- * Vérifie si on est dans un projet Angular
+ * V?rifie si on est dans un projet Angular
  */
 function isAngularProject() {
     const angularJsonPath = path.join(process.cwd(), 'angular.json');
@@ -141,18 +146,15 @@ function isAngularProject() {
 
     if (fs.existsSync(packageJsonPath)) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        return packageJson.dependencies && packageJson.dependencies['@angular/core'];
+        return packageJson.dependencies && !!packageJson.dependencies['@angular/core'];
     }
 
     return true;
 }
 
-/**
- * Crée la structure de dossiers
- */
 function createFolderStructure(basePath) {
     const folders = {
-        core: ['services', 'guards', 'interceptors'],
+        core: ['services', 'guards', 'interceptors', 'config'],
         shared: ['components', 'directives', 'pipes'],
         layout: ['main-layout'],
         features: []
@@ -163,9 +165,9 @@ function createFolderStructure(basePath) {
 
         if (!fs.existsSync(parentPath)) {
             shelljs.mkdir('-p', parentPath);
-            console.log(`📁 Créé: app/${parent}/`);
+            console.log(`?? Cr??: app/${parent}/`);
         } else {
-            console.log(`ℹ️  Existe déjà: app/${parent}/`);
+            console.log(`??  Existe d?j?: app/${parent}/`);
         }
 
         if (children.length > 0) {
@@ -173,20 +175,20 @@ function createFolderStructure(basePath) {
                 const childPath = path.join(parentPath, child);
                 if (!fs.existsSync(childPath)) {
                     shelljs.mkdir('-p', childPath);
-                    console.log(`📁 Créé: app/${parent}/${child}/`);
+                    console.log(`?? Cr??: app/${parent}/${child}/`);
                 } else {
-                    console.log(`ℹ️  Existe déjà: app/${parent}/${child}/`);
+                    console.log(`??  Existe d?j?: app/${parent}/${child}/`);
                 }
             });
         }
     }
 
-    // Créer des fichiers .gitkeep pour les dossiers vides
+    // Cr?er des fichiers .gitkeep pour les dossiers vides
     createGitkeepFiles(basePath);
 }
 
 /**
- * Crée des fichiers .gitkeep dans les dossiers vides
+ * Cr?e des fichiers .gitkeep dans les dossiers vides
  */
 function createGitkeepFiles(basePath) {
     const emptyFolders = [
@@ -204,16 +206,378 @@ function createGitkeepFiles(basePath) {
 }
 
 /**
- * Crée les fichiers d'environnement
+ * Cr?e le fichier de configuration du menu
+ */
+function createMenuConfig(basePath) {
+    console.log('?? Cr?ation de la configuration du menu...');
+
+    const configPath = path.join(basePath, 'core', 'config');
+    const menuPath = path.join(configPath, 'menu.ts');
+
+    if (!fs.existsSync(configPath)) {
+        shelljs.mkdir('-p', configPath);
+    }
+
+    if (fs.existsSync(menuPath)) {
+        console.log('??  Le fichier menu.ts existe d?j?.');
+        return;
+    }
+
+    const menuContent = `/**
+ * Configuration centralis?e du menu de navigation.
+ *
+ * - route       : chemin Angular (routerLink)
+ * - icon        : identifiant d'ic?ne (classe CSS, SVG sprite, etc.)
+ * - children    : sous-menus
+ * - permissions : l'utilisateur doit poss?der au moins une de ces permissions
+ * - roles       : l'utilisateur doit poss?der au moins un de ces r?les
+ * - exact       : correspondance stricte de la route pour le lien actif
+ *
+ * Le lien actif est calcul? ? l'ex?cution via isMenuItemActive() / MenuService.
+ */
+export interface MenuItem {
+  id: string;
+  title: string;
+  route?: string;
+  icon?: string;
+  permissions?: string[];
+  roles?: string[];
+  children?: MenuItem[];
+  exact?: boolean;
+}
+
+/** Menu principal de l'application ? personnalisez cette liste selon vos features. */
+export const APP_MENU: MenuItem[] = [
+  {
+    id: 'dashboard',
+    title: 'Tableau de bord',
+    route: '/dashboard',
+    icon: 'home',
+  },
+  {
+    id: 'administration',
+    title: 'Administration',
+    icon: 'settings',
+    roles: ['admin'],
+    permissions: ['admin.access'],
+    children: [
+      {
+        id: 'users-list',
+        title: 'Utilisateurs',
+        route: '/admin/users',
+        icon: 'users',
+        permissions: ['users.read'],
+      },
+      {
+        id: 'users-create',
+        title: 'Cr?er un utilisateur',
+        route: '/admin/users/create',
+        icon: 'user-plus',
+        permissions: ['users.create'],
+      },
+    ],
+  },
+];
+
+/** Normalise l'URL courante (sans query ni hash). */
+export function normalizeMenuUrl(url: string): string {
+  return url.split('?')[0].split('#')[0];
+}
+
+/** Indique si un item (avec route) correspond ? l'URL courante. */
+export function isMenuItemActive(item: MenuItem, currentUrl: string): boolean {
+  if (!item.route) {
+    return false;
+  }
+
+  const normalized = normalizeMenuUrl(currentUrl);
+  const route = item.route.endsWith('/') && item.route.length > 1
+    ? item.route.slice(0, -1)
+    : item.route;
+
+  if (item.exact) {
+    return normalized === route || normalized === route + '/';
+  }
+
+  return normalized === route || normalized.startsWith(route + '/');
+}
+
+/** Indique si un item ou l'un de ses descendants est actif. */
+export function isMenuBranchActive(item: MenuItem, currentUrl: string): boolean {
+  if (isMenuItemActive(item, currentUrl)) {
+    return true;
+  }
+
+  return item.children?.some(child => isMenuBranchActive(child, currentUrl)) ?? false;
+}
+
+/** V?rifie si l'utilisateur peut voir un item de menu. */
+export function canAccessMenuItem(
+  item: MenuItem,
+  userRoles: string[] = [],
+  userPermissions: string[] = []
+): boolean {
+  const hasRoleConstraint = !!item.roles?.length;
+  const hasPermissionConstraint = !!item.permissions?.length;
+
+  if (!hasRoleConstraint && !hasPermissionConstraint) {
+    return true;
+  }
+
+  const roleOk = !hasRoleConstraint || item.roles!.some(role => userRoles.includes(role));
+  const permOk = !hasPermissionConstraint || item.permissions!.some(p => userPermissions.includes(p));
+
+  if (hasRoleConstraint && hasPermissionConstraint) {
+    return roleOk && permOk;
+  }
+
+  return hasRoleConstraint ? roleOk : permOk;
+}
+
+/** Filtre r?cursivement le menu selon les r?les et permissions de l'utilisateur. */
+export function filterMenuByAccess(
+  items: MenuItem[],
+  userRoles: string[] = [],
+  userPermissions: string[] = []
+): MenuItem[] {
+  return items
+    .filter(item => canAccessMenuItem(item, userRoles, userPermissions))
+    .map(item => ({
+      ...item,
+      children: item.children
+        ? filterMenuByAccess(item.children, userRoles, userPermissions)
+        : undefined,
+    }))
+    .filter(item => !!item.route || (item.children?.length ?? 0) > 0);
+}
+`;
+
+    fs.writeFileSync(menuPath, menuContent);
+    console.log('? Cr??: core/config/menu.ts');
+}
+
+/**
+ * Cr?e le service Menu (lien actif + filtrage permissions)
+ */
+function createMenuService(basePath) {
+    console.log('? Cr?ation du service Menu...');
+
+    const servicesPath = path.join(basePath, 'core', 'services');
+    const menuServicePath = path.join(servicesPath, 'menu.service.ts');
+
+    if (fs.existsSync(menuServicePath)) {
+        console.log('??  Le fichier menu.service.ts existe d?j?.');
+        return;
+    }
+
+    const menuServiceContent = `import { computed, inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { CoreService } from '@/core/services/core.service';
+import {
+  APP_MENU,
+  MenuItem,
+  filterMenuByAccess,
+  isMenuBranchActive,
+  isMenuItemActive,
+} from '@/core/config/menu';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class MenuService {
+  private router = inject(Router);
+  private coreService = inject(CoreService);
+
+  /** Menu filtr? selon les r?les et permissions de l'utilisateur connect?. */
+  readonly visibleMenu = computed(() => {
+    const user = this.coreService.currentUser();
+    return filterMenuByAccess(
+      APP_MENU,
+      user?.roles ?? [],
+      user?.permissions ?? []
+    );
+  });
+
+  /** Indique si l'item correspond ? la route courante. */
+  isActive(item: MenuItem): boolean {
+    return isMenuItemActive(item, this.router.url);
+  }
+
+  /** Indique si l'item ou un de ses sous-menus est actif. */
+  isBranchActive(item: MenuItem): boolean {
+    return isMenuBranchActive(item, this.router.url);
+  }
+}
+`;
+
+    fs.writeFileSync(menuServicePath, menuServiceContent);
+    console.log('? Cr??: core/services/menu.service.ts');
+}
+
+/**
+ * Cr?e le composant de navigation r?utilisable (sous-menus + lien actif)
+ */
+function createAppNavMenu(basePath) {
+    console.log('?? Cr?ation du composant app-nav-menu...');
+
+    const navPath = path.join(basePath, 'shared', 'components', 'app-nav-menu');
+
+    if (fs.existsSync(navPath)) {
+        console.log('??  Le composant app-nav-menu existe d?j?.');
+        return;
+    }
+
+    shelljs.mkdir('-p', navPath);
+
+    const tsContent = `import { Component, inject, input } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { MenuItem } from '@/core/config/menu';
+import { MenuService } from '@/core/services/menu.service';
+
+@Component({
+  selector: 'app-nav-menu',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive, AppNavMenuComponent],
+  templateUrl: './app-nav-menu.component.html',
+  styleUrl: './app-nav-menu.component.scss',
+})
+export class AppNavMenuComponent {
+  items = input<MenuItem[]>([]);
+  nested = input(false);
+
+  protected menuService = inject(MenuService);
+}
+`;
+
+    const htmlContent = `<ul class="nav-menu" [class.nav-menu--nested]="nested()">
+  @for (item of items(); track item.id) {
+    <li
+      class="nav-menu__item"
+      [class.nav-menu__item--active]="menuService.isBranchActive(item)"
+      [class.nav-menu__item--group]="!item.route && item.children?.length"
+    >
+      @if (item.route) {
+        <a
+          class="nav-menu__link"
+          [routerLink]="item.route"
+          routerLinkActive="nav-menu__link--active"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        >
+          @if (item.icon) {
+            <span class="nav-menu__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+          }
+          <span class="nav-menu__label">{{ item.title }}</span>
+        </a>
+      } @else {
+        <span class="nav-menu__group-label">
+          @if (item.icon) {
+            <span class="nav-menu__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+          }
+          <span class="nav-menu__label">{{ item.title }}</span>
+        </span>
+      }
+
+      @if (item.children?.length) {
+        <app-nav-menu [items]="item.children!" [nested]="true" />
+      }
+    </li>
+  }
+</ul>
+`;
+
+    const scssContent = `.nav-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &--nested {
+    margin-top: 0.25rem;
+    margin-left: 1rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+.nav-menu__item--active > .nav-menu__link,
+.nav-menu__link--active {
+  background-color: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+}
+
+.nav-menu__link,
+.nav-menu__group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav-menu__group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  padding-top: 0.75rem;
+}
+
+.nav-menu__icon::before {
+  content: attr(data-icon);
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+`;
+
+    const specContent = `import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { AppNavMenuComponent } from './app-nav-menu.component';
+import { APP_MENU } from '@/core/config/menu';
+
+describe('AppNavMenuComponent', () => {
+  let fixture: ComponentFixture<AppNavMenuComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppNavMenuComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AppNavMenuComponent);
+    fixture.componentRef.setInput('items', APP_MENU);
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+});
+`;
+
+    fs.writeFileSync(path.join(navPath, 'app-nav-menu.component.ts'), tsContent);
+    fs.writeFileSync(path.join(navPath, 'app-nav-menu.component.html'), htmlContent);
+    fs.writeFileSync(path.join(navPath, 'app-nav-menu.component.scss'), scssContent);
+    fs.writeFileSync(path.join(navPath, 'app-nav-menu.component.spec.ts'), specContent);
+
+    console.log('? Cr??: shared/components/app-nav-menu/');
+}
+
+/**
+ * Cr?e les fichiers d'environnement
  */
 function createEnvironmentFiles() {
-    console.log('🌍 Création des fichiers d\'environnement...');
+    console.log('?? Cr?ation des fichiers d\\'environnement...');
 
     const environmentsPath = path.join(process.cwd(), 'src', 'environments');
 
     if (!fs.existsSync(environmentsPath)) {
         shelljs.mkdir('-p', environmentsPath);
-        console.log('📁 Créé: src/environments/');
+        console.log('?? Cr??: src/environments/');
     }
 
     const environmentLocalPath = path.join(environmentsPath, 'environment.ts');
@@ -234,30 +598,41 @@ function createEnvironmentFiles() {
 
     if (!fs.existsSync(environmentLocalPath)) {
         fs.writeFileSync(environmentLocalPath, environmentLocalContent);
-        console.log('✅ Créé: environments/environment.ts');
+        console.log('? Cr??: environments/environment.ts');
     } else {
-        console.log('ℹ️  Existe déjà: environments/environment.ts');
+        console.log('??  Existe d?j?: environments/environment.ts');
     }
 
     if (!fs.existsSync(environmentProdPath)) {
         fs.writeFileSync(environmentProdPath, environmentProdContent);
-        console.log('✅ Créé: environments/environment.prod.ts');
+        console.log('? Cr??: environments/environment.prod.ts');
     } else {
-        console.log('ℹ️  Existe déjà: environments/environment.prod.ts');
+        console.log('??  Existe d?j?: environments/environment.prod.ts');
+    }
+}
+
+/**?j?: environments/environment.ts');
+    }
+
+    if (!fs.existsSync(environmentProdPath)) {
+        fs.writeFileSync(environmentProdPath, environmentProdContent);
+        console.log('? Cr??: environments/environment.prod.ts');
+    } else {
+        console.log('??  Existe d?j?: environments/environment.prod.ts');
     }
 }
 
 /**
- * Crée le service Core
+ * Cr?e le service Core
  */
 function createCoreService(basePath) {
-    console.log('⚡ Création du service Core...');
+    console.log('? Cr?ation du service Core...');
 
     const servicesPath = path.join(basePath, 'core', 'services');
     const coreServicePath = path.join(servicesPath, 'core.service.ts');
 
     if (fs.existsSync(coreServicePath)) {
-        console.log('ℹ️  Le fichier core.service.ts existe déjà.');
+        console.log('??  Le fichier core.service.ts existe d?j?.');
         return;
     }
 
@@ -267,7 +642,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  // Ajoutez d'autres propriétés selon vos besoins
+  roles?: string[];
+  permissions?: string[];
 }
 
 @Injectable({
@@ -282,7 +658,7 @@ export class CoreService {
   private _token = signal<string | null>(null);
   public readonly token = computed(() => this._token());
 
-  // Computed pour vérifier si l'utilisateur est authentifié
+  // Computed pour v?rifier si l'utilisateur est authentifi?
   public readonly isAuthenticated = computed(() => !!this._token());
 
   // Getter pour le token (pour l'interceptor)
@@ -291,7 +667,7 @@ export class CoreService {
   }
 
   constructor() {
-    // Charger le token depuis le localStorage au démarrage
+    // Charger le token depuis le localStorage au d?marrage
     this.loadTokenFromStorage();
   }
 
@@ -317,7 +693,7 @@ export class CoreService {
   }
 
   /**
-   * Définit le token d'authentification
+   * D?finit le token d'authentification
    */
   setToken(token: string): void {
     this._token.set(token);
@@ -325,7 +701,7 @@ export class CoreService {
   }
 
   /**
-   * Définit l'utilisateur actuel
+   * D?finit l'utilisateur actuel
    */
   setCurrentUser(user: User): void {
     this._currentUser.set(user);
@@ -333,7 +709,7 @@ export class CoreService {
   }
 
   /**
-   * Déconnecte l'utilisateur
+   * D?connecte l'utilisateur
    */
   logout(): void {
     this._token.set(null);
@@ -343,39 +719,39 @@ export class CoreService {
   }
 
   /**
-   * Vérifie si l'utilisateur a un rôle spécifique
+   * V?rifie si l'utilisateur a un r?le sp?cifique
    */
   hasRole(role: string): boolean {
-    // Implémentez votre logique de vérification des rôles ici
+    // Impl?mentez votre logique de v?rification des r?les ici
     // Par exemple: return this.currentUser()?.roles?.includes(role) ?? false;
     return false;
   }
 
   /**
-   * Vérifie si l'utilisateur a une permission spécifique
+   * V?rifie si l'utilisateur a une permission sp?cifique
    */
   hasPermission(permission: string): boolean {
-    // Implémentez votre logique de vérification des permissions ici
+    // Impl?mentez votre logique de v?rification des permissions ici
     return false;
   }
 }
 `;
 
     fs.writeFileSync(coreServicePath, coreServiceContent);
-    console.log('✅ Créé: core/services/core.service.ts');
+    console.log('? Cr??: core/services/core.service.ts');
 }
 
 /**
- * Crée le service API
+ * Cr?e le service API
  */
 function createApiService(basePath) {
-    console.log('⚡ Création du service API...');
+    console.log('? Cr?ation du service API...');
 
     const servicesPath = path.join(basePath, 'core', 'services');
     const apiServicePath = path.join(servicesPath, 'api.service.ts');
 
     if (fs.existsSync(apiServicePath)) {
-        console.log('ℹ️  Le fichier api.service.ts existe déjà.');
+        console.log('??  Le fichier api.service.ts existe d?j?.');
         return;
     }
 
@@ -432,10 +808,10 @@ export class ApiService {
   }
 
   /**
-   * Effectue une requête GET via httpResource() (Angular 22+)
+   * Effectue une requ?te GET via httpResource() (Angular 22+)
    * @param url Chemin de l'API
    * @param options Options pour la ressource
-   * @returns ResourceRef gérant isLoading, value, error
+   * @returns ResourceRef g?rant isLoading, value, error
    */
   getResource<T>(url: string, options?: any): any /* ResourceRef<T> */ {
     return httpResource<T>(this.apiUrl + url, options);
@@ -506,10 +882,10 @@ export class ApiService {
 
     switch (error.status) {
       case 0:
-        console.error('Connexion au serveur impossible. Vérifiez votre connexion internet.');
+        console.error('Connexion au serveur impossible. V?rifiez votre connexion internet.');
         break;
       case 401:
-        console.warn('Session expirée. Redirection vers la page de connexion...');
+        console.warn('Session expir?e. Redirection vers la page de connexion...');
         this.coreService.clearToken();
         this.router.navigate(['/']);
         break;
@@ -527,14 +903,14 @@ export class ApiService {
 `;
 
     fs.writeFileSync(apiServicePath, apiServiceContent);
-    console.log('✅ Créé: core/services/api.service.ts');
+    console.log('? Cr??: core/services/api.service.ts');
 }
 
 /**
- * Crée les guards
+ * Cr?e les guards
  */
 function createGuards(basePath) {
-    console.log('🛡️  Création des guards...');
+    console.log('???  Cr?ation des guards...');
 
     const guardsPath = path.join(basePath, 'core', 'guards');
 
@@ -557,9 +933,9 @@ export const AuthGuard: CanActivateFn = (route, state) => {
 };
 `;
         fs.writeFileSync(authGuardPath, authGuardContent);
-        console.log('✅ Créé: core/guards/auth.guard.ts');
+        console.log('? Cr??: core/guards/auth.guard.ts');
     } else {
-        console.log('ℹ️  Existe déjà: core/guards/auth.guard.ts');
+        console.log('??  Existe d?j?: core/guards/auth.guard.ts');
     }
 
     // GuestGuard
@@ -581,23 +957,23 @@ export const GuestGuard: CanActivateFn = (route, state) => {
 };
 `;
         fs.writeFileSync(guestGuardPath, guestGuardContent);
-        console.log('✅ Créé: core/guards/guest.guard.ts');
+        console.log('? Cr??: core/guards/guest.guard.ts');
     } else {
-        console.log('ℹ️  Existe déjà: core/guards/guest.guard.ts');
+        console.log('??  Existe d?j?: core/guards/guest.guard.ts');
     }
 }
 
 /**
- * Crée l'interceptor HTTP
+ * Cr?e l'interceptor HTTP
  */
 function createHttpInterceptor(basePath) {
-    console.log('🔌 Création de l\'interceptor HTTP...');
+    console.log('?? Cr?ation de l\'interceptor HTTP...');
 
     const interceptorsPath = path.join(basePath, 'core', 'interceptors');
     const interceptorPath = path.join(interceptorsPath, 'http.interceptor.ts');
 
     if (fs.existsSync(interceptorPath)) {
-        console.log('ℹ️  Le fichier http.interceptor.ts existe déjà.');
+        console.log('??  Le fichier http.interceptor.ts existe d?j?.');
         return;
     }
 
@@ -629,18 +1005,18 @@ export function HttpInterceptor(request: HttpRequest<any>, next: HttpHandlerFn) 
 `;
 
     fs.writeFileSync(interceptorPath, interceptorContent);
-    console.log('✅ Créé: core/interceptors/http.interceptor.ts');
+    console.log('? Cr??: core/interceptors/http.interceptor.ts');
 }
 
 /**
- * Crée ou met à jour app.config.ts
+ * Cr?e ou met ? jour app.config.ts
  */
 function createAppConfig(basePath) {
-    console.log('⚙️  Mise à jour de app.config.ts...');
+    console.log('??  Mise ? jour de app.config.ts...');
 
     const configPath = path.join(basePath, 'app.config.ts');
 
-    // Si le fichier n'existe pas, créer un fichier minimal
+    // Si le fichier n'existe pas, cr?er un fichier minimal
     if (!fs.existsSync(configPath)) {
         const configContent = `import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
@@ -661,7 +1037,7 @@ export const appConfig: ApplicationConfig = {
 };
 `;
         fs.writeFileSync(configPath, configContent);
-        console.log('✅ Créé: app.config.ts');
+        console.log('? Cr??: app.config.ts');
         return;
     }
 
@@ -685,84 +1061,112 @@ export const appConfig: ApplicationConfig = {
 };
 `;
     fs.writeFileSync(configPath, configContent);
-    console.log('✅ app.config.ts mis à jour (Zoneless, Router, HttpClient).');
+    console.log('? app.config.ts mis ? jour (Zoneless, Router, HttpClient).');
 }
 
 /**
- * Génère le composant main-layout
+ * G?n?re le composant main-layout
  */
 function generateMainLayout() {
     const layoutPath = path.join(process.cwd(), 'src', 'app', 'layout', 'main-layout');
     const componentTsPath = path.join(layoutPath, 'main-layout.ts');
 
     if (fs.existsSync(componentTsPath)) {
-        console.log('ℹ️  Le composant main-layout existe déjà.');
+        console.log('??  Le composant main-layout existe d?j?.');
         return;
     }
 
-    console.log('🎨 Création du composant main-layout...');
+    console.log('?? Cr?ation du composant main-layout...');
 
     if (!fs.existsSync(layoutPath)) {
         shelljs.mkdir('-p', layoutPath);
     }
 
-    const tsContent = `import { Component } from '@angular/core';
+    const tsContent = `import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AppNavMenuComponent } from '@/shared/components/app-nav-menu/app-nav-menu.component';
+import { MenuService } from '@/core/services/menu.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, AppNavMenuComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss'
 })
-export class MainLayout {}
+export class MainLayout {
+  protected menuService = inject(MenuService);
+}
 `;
 
     const htmlContent = `<div class="main-layout">
-  <header class="header">
-    <div class="container">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
       <h1>Mon Application</h1>
-      <!-- Navigation -->
     </div>
-  </header>
-  
-  <main class="content">
-    <div class="container">
-      <router-outlet />
-    </div>
-  </main>
-  
-  <footer class="footer">
-    <div class="container">
-      <p>&copy; 2025 - Mon Application</p>
-    </div>
-  </footer>
+    <nav class="sidebar__nav" aria-label="Navigation principale">
+      <app-nav-menu [items]="menuService.visibleMenu()" />
+    </nav>
+  </aside>
+
+  <div class="main-layout__body">
+    <main class="content">
+      <div class="container">
+        <router-outlet />
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 - Mon Application</p>
+      </div>
+    </footer>
+  </div>
 </div>
 `;
 
     const scssContent = `.main-layout {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
-.header {
-  background-color: #333;
-  color: white;
-  padding: 1rem 0;
-  
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
+.sidebar {
+  width: 260px;
+  background-color: #1f2937;
+  color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  &__brand {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    h1 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
   }
+
+  &__nav {
+    padding: 1rem 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+.main-layout__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .content {
   flex: 1;
   padding: 2rem 0;
-  
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -773,8 +1177,7 @@ export class MainLayout {}
 .footer {
   background-color: #f5f5f5;
   padding: 1rem 0;
-  margin-top: auto;
-  
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -788,14 +1191,14 @@ export class MainLayout {}
     fs.writeFileSync(path.join(layoutPath, 'main-layout.html'), htmlContent);
     fs.writeFileSync(path.join(layoutPath, 'main-layout.scss'), scssContent);
 
-    console.log('✅ Composant main-layout créé.');
+    console.log('? Composant main-layout cr??.');
 }
 
 /**
  * Remplace app.component
  */
 function replaceAppComponent(basePath) {
-    console.log('🔄 Mise à jour de app.component...');
+    console.log('?? Mise ? jour de app.component...');
 
     const appComponentDir = basePath;
 
@@ -816,7 +1219,7 @@ function replaceAppComponent(basePath) {
         const filePath = path.join(appComponentDir, file);
         if (fs.existsSync(filePath)) {
             fs.rmSync(filePath);
-            console.log(`🗑️  Supprimé: ${file}`);
+            console.log(`???  Supprim?: ${file}`);
         }
     });
 
@@ -834,17 +1237,17 @@ export class App {}
 `;
 
     fs.writeFileSync(appTsPath, appTsContent);
-    console.log('✅ Fichier app.ts mis à jour.');
+    console.log('? Fichier app.ts mis ? jour.');
 }
 
 /**
- * Crée app.routes.ts
+ * Cr?e app.routes.ts
  */
 function createAppRoutes(basePath) {
     const routesPath = path.join(basePath, 'app.routes.ts');
 
     if (fs.existsSync(routesPath)) {
-        console.log('ℹ️  Le fichier app.routes.ts existe déjà.');
+        console.log('??  Le fichier app.routes.ts existe d?j?.');
         return;
     }
 
@@ -854,39 +1257,39 @@ export const routes: Routes = [];
 `;
 
     fs.writeFileSync(routesPath, routesContent);
-    console.log('✅ Fichier app.routes.ts créé.');
+    console.log('? Fichier app.routes.ts cr??.');
 }
 
 /**
- * Crée les modules par défaut (auth et dashboard)
+ * Cr?e les modules par d?faut (auth et dashboard)
  */
 async function createDefaultModules(basePath) {
-    console.log('\n📦 Création des modules par défaut...\n');
+    console.log('\n?? Cr?ation des modules par d?faut...\n');
 
     const featuresPath = path.join(basePath, 'features');
 
-    // Créer le module auth
+    // Cr?er le module auth
     await createModule(featuresPath, 'auth', 'GuestGuard');
 
-    // Créer le module dashboard
+    // Cr?er le module dashboard
     await createModule(featuresPath, 'dashboard', 'AuthGuard');
 
-    // Mettre à jour app.routes.ts avec les modules
+    // Mettre ? jour app.routes.ts avec les modules
     updateAppRoutesWithDefaultModules(basePath);
 }
 
 /**
- * Crée un module
+ * Cr?e un module
  */
 async function createModule(featuresPath, moduleName, guardType) {
     const modulePath = path.join(featuresPath, moduleName);
 
     if (fs.existsSync(modulePath)) {
-        console.log(`ℹ️  Le module "${moduleName}" existe déjà.`);
+        console.log(`??  Le module "${moduleName}" existe d?j?.`);
         return;
     }
 
-    // Créer la structure
+    // Cr?er la structure
     const folders = ['views', 'models', 'components', 'services'];
     shelljs.mkdir('-p', modulePath);
 
@@ -896,9 +1299,9 @@ async function createModule(featuresPath, moduleName, guardType) {
         fs.writeFileSync(path.join(folderPath, '.gitkeep'), '');
     });
 
-    console.log(`📁 Créé: features/${moduleName}/`);
+    console.log(`?? Cr??: features/${moduleName}/`);
 
-    // Créer le fichier routes.ts avec le guard approprié
+    // Cr?er le fichier routes.ts avec le guard appropri?
     const guardImport = guardType === 'AuthGuard'
         ? "import { AuthGuard } from '../../core/guards/auth.guard';"
         : "import { GuestGuard } from '../../core/guards/guest.guard';";
@@ -919,11 +1322,11 @@ export const ${constantName}: Routes = [
 `;
 
     fs.writeFileSync(path.join(modulePath, 'routes.ts'), routesContent);
-    console.log(`✅ Créé: features/${moduleName}/routes.ts (avec ${guardType})`);
+    console.log(`? Cr??: features/${moduleName}/routes.ts (avec ${guardType})`);
 }
 
 /**
- * Met à jour app.routes.ts avec les modules par défaut
+ * Met ? jour app.routes.ts avec les modules par d?faut
  */
 function updateAppRoutesWithDefaultModules(basePath) {
     const routesPath = path.join(basePath, 'app.routes.ts');
@@ -948,19 +1351,19 @@ export const routes: Routes = [
 `;
 
     fs.writeFileSync(routesPath, routesContent);
-    console.log('✅ app.routes.ts mis à jour avec les modules par défaut et route fallback.');
+    console.log('? app.routes.ts mis ? jour avec les modules par d?faut et route fallback.');
 }
 
 /**
- * Met à jour angular.json
+ * Met ? jour angular.json
  */
 function updateAngularJson() {
-    console.log('⚙️  Mise à jour de angular.json...');
+    console.log('??  Mise ? jour de angular.json...');
 
     const angularJsonPath = path.join(process.cwd(), 'angular.json');
 
     if (!fs.existsSync(angularJsonPath)) {
-        console.warn('⚠️  Fichier angular.json introuvable.');
+        console.warn('??  Fichier angular.json introuvable.');
         return;
     }
 
@@ -969,14 +1372,14 @@ function updateAngularJson() {
         const projectName = Object.keys(angularJson.projects)[0];
 
         if (!projectName) {
-            console.warn('⚠️  Aucun projet trouvé dans angular.json.');
+            console.warn('??  Aucun projet trouv? dans angular.json.');
             return;
         }
 
         const project = angularJson.projects[projectName];
 
         if (!project.architect || !project.architect.build) {
-            console.warn('⚠️  Configuration build introuvable.');
+            console.warn('??  Configuration build introuvable.');
             return;
         }
 
@@ -1032,23 +1435,23 @@ function updateAngularJson() {
         });
 
         fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
-        console.log('✅ angular.json mis à jour.');
+        console.log('? angular.json mis ? jour.');
 
     } catch (error) {
-        console.error('❌ Erreur lors de la mise à jour de angular.json:', error.message);
+        console.error('? Erreur lors de la mise ? jour de angular.json:', error.message);
     }
 }
 
 /**
- * Met à jour tsconfig.json pour ajouter l'alias @/* → src/app/*
+ * Met ? jour tsconfig.json pour ajouter l'alias @/* ? src/app/*
  */
 function updateTsConfig() {
-    console.log('⚙️  Mise à jour de tsconfig.json (alias @)...');
+    console.log('??  Mise ? jour de tsconfig.json (alias @)...');
 
     const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
 
     if (!fs.existsSync(tsconfigPath)) {
-        console.warn('⚠️  Fichier tsconfig.json introuvable.');
+        console.warn('??  Fichier tsconfig.json introuvable.');
         return;
     }
 
@@ -1066,7 +1469,7 @@ function updateTsConfig() {
         }
 
         if (tsconfig.compilerOptions.paths['@/*']) {
-            console.log('ℹ️  Alias "@/*" déjà configuré dans tsconfig.json.');
+            console.log('??  Alias "@/*" d?j? configur? dans tsconfig.json.');
             return;
         }
 
@@ -1074,16 +1477,63 @@ function updateTsConfig() {
         tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
 
         fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-        console.log('✅ tsconfig.json mis à jour (alias @/* → src/app/*).');
+        console.log('? tsconfig.json mis ? jour (alias @/* ? src/app/*).');
 
     } catch (error) {
-        console.error('❌ Erreur lors de la mise à jour de tsconfig.json:', error.message);
+        console.error('? Erreur lors de la mise ? jour de tsconfig.json:', error.message);
+    }
+}
+
+function cleanCssTraces(frameworkToRemove) {
+    const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
+    const cssPath = path.join(process.cwd(), 'src', 'styles.css');
+    const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
+
+    if (frameworkToRemove === 'tailwind') {
+        console.log('?? Nettoyage des traces de Tailwind CSS...');
+        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer', { silent: true });
+        
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            content = content.replace(/@import\s+['"]tailwindcss['"];?\n?/g, '');
+            content = content.replace(/@tailwind\s+(base|components|utilities);?\n?/g, '');
+            fs.writeFileSync(styleFile, content);
+        }
+    } else if (frameworkToRemove === 'bootstrap') {
+        console.log('?? Nettoyage des traces de Bootstrap...');
+        shelljs.exec('npm uninstall bootstrap', { silent: true });
+        
+        if (styleFile) {
+            let content = fs.readFileSync(styleFile, 'utf8');
+            content = content.replace(/@import\s+['"]bootstrap\/scss\/bootstrap['"];?\n?/g, '');
+            content = content.replace(/@import\s+['"]bootstrap\/dist\/css\/bootstrap\.min\.css['"];?\n?/g, '');
+            fs.writeFileSync(styleFile, content);
+        }
+
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+                
+                if (architect && architect.build && architect.build.options && architect.build.options.scripts) {
+                    architect.build.options.scripts = architect.build.options.scripts.filter(script => 
+                        !script.includes('bootstrap')
+                    );
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                }
+            } catch (e) {
+                // Silently ignore if angular.json cannot be parsed during cleanup
+            }
+        }
     }
 }
 
 function configureCssFramework(framework) {
     if (framework === 'bootstrap') {
-        console.log('\n🎨 Configuration de Bootstrap...');
+        cleanCssTraces('tailwind');
+        console.log('\n?? Configuration de Bootstrap...');
         shelljs.exec('npm install bootstrap', { silent: false });
         
         const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
@@ -1094,20 +1544,20 @@ function configureCssFramework(framework) {
             let content = fs.readFileSync(styleFile, 'utf8');
             const isScss = styleFile.endsWith('.scss');
             
-            // Pour le SCSS, on importe le code source SASS de Bootstrap. Pour le CSS, on importe le fichier minifié.
+            // Pour le SCSS, on importe le code source SASS de Bootstrap. Pour le CSS, on importe le fichier minifi?.
             const bootstrapImport = isScss 
                 ? `@import 'bootstrap/scss/bootstrap';\n\n`
                 : `@import 'bootstrap/dist/css/bootstrap.min.css';\n\n`;
                 
             if (!content.includes('bootstrap')) {
                 fs.writeFileSync(styleFile, bootstrapImport + content);
-                console.log("✅ Fichier styles mis à jour avec l'import de Bootstrap.");
+                console.log("? Fichier styles mis ? jour avec l'import de Bootstrap.");
             }
         } else {
-            console.warn("⚠️  Fichier styles.scss/css introuvable pour ajouter l'import de Bootstrap.");
+            console.warn("??  Fichier styles.scss/css introuvable pour ajouter l'import de Bootstrap.");
         }
 
-        // On injecte également le JS de Bootstrap dans angular.json
+        // On injecte ?galement le JS de Bootstrap dans angular.json
         const angularJsonPath = path.join(process.cwd(), 'angular.json');
         if (fs.existsSync(angularJsonPath)) {
             try {
@@ -1124,18 +1574,21 @@ function configureCssFramework(framework) {
                     }
                     
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
-                    console.log('✅ angular.json mis à jour avec les scripts Bootstrap.');
+                    console.log('? angular.json mis ? jour avec les scripts Bootstrap.');
                 }
             } catch (e) {
-                console.error('❌ Erreur lors de la configuration Bootstrap dans angular.json:', e.message);
+                console.error('? Erreur lors de la configuration Bootstrap dans angular.json:', e.message);
             }
         }
     } else if (framework === 'tailwind') {
-        console.log('\n🎨 Configuration de Tailwind CSS...');
+        cleanCssTraces('bootstrap');
+        console.log('\n?? Configuration de Tailwind CSS...');
         shelljs.exec('ng add tailwindcss --skip-confirmation', { silent: false });
-        console.log('✅ Tailwind CSS installé et configuré.');
+        console.log('? Tailwind CSS install? et configur?.');
     } else if (framework === 'custom') {
-        console.log('\n🎨 Configuration du CSS Custom (Reset de base)...');
+        cleanCssTraces('tailwind');
+        cleanCssTraces('bootstrap');
+        console.log('\n?? Configuration du CSS Custom (Reset de base)...');
         const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
         const cssPath = path.join(process.cwd(), 'src', 'styles.css');
         const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
@@ -1158,7 +1611,7 @@ body {
             let content = fs.readFileSync(styleFile, 'utf8');
             if (!content.includes('box-sizing')) {
                 fs.writeFileSync(styleFile, customReset + '\n' + content);
-                console.log('✅ Fichier styles mis à jour avec le reset CSS custom.');
+                console.log('? Fichier styles mis ? jour avec le reset CSS custom.');
             }
         }
     }
@@ -1166,14 +1619,14 @@ body {
 
 // Gestion des erreurs
 process.on('uncaughtException', (error) => {
-    console.error('\n❌ Erreur inattendue:', error.message);
+    console.error('\n? Erreur inattendue:', error.message);
     process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {
-    console.error('\n❌ Promesse rejetée:', reason);
+    console.error('\n? Promesse rejet?e:', reason);
     process.exit(1);
 });
 
-// Exécution
+// Ex?cution
 initProject();
