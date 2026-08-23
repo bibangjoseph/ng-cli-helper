@@ -59,7 +59,12 @@ export function configureCssFramework(framework) {
     if (framework === 'bootstrap') {
         cleanCssTraces('tailwind');
         console.log('\n🎨 Configuration de Bootstrap et Bootstrap Icons...');
-        shelljs.exec('npm install bootstrap bootstrap-icons', { silent: false });
+        const result = shelljs.exec('npm install bootstrap bootstrap-icons', { silent: false });
+        
+        if (result.code !== 0) {
+            console.error("\\n❌ Échec de l'installation de Bootstrap et Bootstrap Icons. Les fichiers d'import n'ont pas été ajoutés.");
+            return;
+        }
 
         // On injecte les fichiers CSS et JS de Bootstrap dans angular.json
         const angularJsonPath = path.join(process.cwd(), 'angular.json');
@@ -99,7 +104,12 @@ export function configureCssFramework(framework) {
     } else if (framework === 'tailwind') {
         cleanCssTraces('bootstrap');
         console.log('\n🎨 Configuration de Tailwind CSS...');
-        shelljs.exec('ng add tailwindcss --skip-confirmation', { silent: false });
+        const result = shelljs.exec('npx ng add tailwindcss --skip-confirmation', { silent: false });
+        
+        if (result.code !== 0) {
+            console.error("\\n❌ Échec de l'installation de Tailwind CSS.");
+            return;
+        }
         console.log('✅ Tailwind CSS installé et configuré.');
     } else if (framework === 'custom') {
         cleanCssTraces('tailwind');
