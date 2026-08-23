@@ -74,7 +74,7 @@ export class ApiService {
    * @returns ResourceRef gérant isLoading, value, error
    */
   getResource<T>(url: string, options?: any): any /* ResourceRef<T> */ {
-    return httpResource<T>(this.apiUrl + url, options);
+    return httpResource<T>(() => this.apiUrl + url, options);
   }
 
   get<T>(url: string, options?: ApiRequestOptions): Observable<T> {

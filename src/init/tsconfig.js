@@ -32,7 +32,6 @@ export function updateTsConfig() {
             return;
         }
 
-        tsconfig.compilerOptions.baseUrl = './';
         tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
 
         fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
