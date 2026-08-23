@@ -27,15 +27,24 @@ export function updateTsConfig() {
             tsconfig.compilerOptions.paths = {};
         }
 
-        if (tsconfig.compilerOptions.paths['@/*']) {
-            console.log('ℹ️  Alias "@/*" déjà configuré dans tsconfig.json.');
-            return;
+        let modified = false;
+
+        if (!tsconfig.compilerOptions.paths['@/*']) {
+            tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
+            modified = true;
         }
 
-        tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
+        if (tsconfig.compilerOptions.baseUrl) {
+            delete tsconfig.compilerOptions.baseUrl;
+            modified = true;
+        }
 
-        fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-        console.log('✅ tsconfig.json mis à jour (alias @/* vers src/app/*).');
+        if (modified) {
+            fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+            console.log('✅ tsconfig.json mis à jour (alias @/* ajouté et baseUrl nettoyé).');
+        } else {
+            console.log('ℹ️  tsconfig.json déjà configuré.');
+        }
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de tsconfig.json:', error.message);
