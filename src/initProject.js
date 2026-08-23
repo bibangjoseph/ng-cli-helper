@@ -51,6 +51,37 @@ async function initProject() {
             }
         }
 
+        const basePath = path.join(process.cwd(), 'src', 'app');
+        const coreServicesPath = path.join(basePath, 'core', 'services');
+        
+        if (fs.existsSync(coreServicesPath)) {
+            const { reinit } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'reinit',
+                    message: '⚠️  Ce projet semble déjà avoir été initialisé. Voulez-vous vraiment le réinitialiser ? (Cela supprimera et recréera les dossiers core, shared, layout et environments)',
+                    default: false
+                }
+            ]);
+
+            if (!reinit) {
+                console.log('🛑 Initialisation annulée.');
+                process.exit(0);
+            } else {
+                console.log("🧹 Nettoyage de l'ancienne structure...");
+                const shelljs = (await import('shelljs')).default;
+                shelljs.rm('-rf', path.join(basePath, 'core'));
+                shelljs.rm('-rf', path.join(basePath, 'shared'));
+                shelljs.rm('-rf', path.join(basePath, 'layout'));
+                shelljs.rm('-rf', path.join(process.cwd(), 'src', 'environments'));
+                
+                const routesPath = path.join(basePath, 'app.routes.ts');
+                if (fs.existsSync(routesPath)) {
+                    shelljs.rm('-f', routesPath);
+                }
+            }
+        }
+
         const { cssFramework } = await inquirer.prompt([
             {
                 type: 'list',
@@ -63,8 +94,6 @@ async function initProject() {
                 ]
             }
         ]);
-
-        const basePath = path.join(process.cwd(), 'src', 'app');
 
         // Créer la structure de dossiers
         createFolderStructure(basePath);

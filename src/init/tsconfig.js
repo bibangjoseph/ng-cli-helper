@@ -29,8 +29,8 @@ export function updateTsConfig() {
 
         let modified = false;
 
-        if (!tsconfig.compilerOptions.paths['@/*']) {
-            tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
+        if (!tsconfig.compilerOptions.paths['@/*'] || tsconfig.compilerOptions.paths['@/*'][0] === 'src/app/*') {
+            tsconfig.compilerOptions.paths['@/*'] = ['./src/app/*'];
             modified = true;
         }
 

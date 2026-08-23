@@ -72,16 +72,14 @@ export function configureCssFramework(framework) {
                 if (architect && architect.build && architect.build.options) {
                     // Ajout du CSS
                     architect.build.options.styles = architect.build.options.styles || [];
-                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css') &&
-                        !architect.build.options.styles.includes('bootstrap/dist/css/bootstrap.min.css')) {
-                        architect.build.options.styles.unshift('bootstrap/dist/css/bootstrap.min.css');
+                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css')) {
+                        architect.build.options.styles.unshift('node_modules/bootstrap/dist/css/bootstrap.min.css');
                     }
 
                     // Ajout du JS
                     architect.build.options.scripts = architect.build.options.scripts || [];
-                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') &&
-                        !architect.build.options.scripts.includes('bootstrap/dist/js/bootstrap.bundle.min.js')) {
-                        architect.build.options.scripts.push('bootstrap/dist/js/bootstrap.bundle.min.js');
+                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js')) {
+                        architect.build.options.scripts.push('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
                     }
 
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
