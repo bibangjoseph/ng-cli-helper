@@ -35,10 +35,17 @@ export function cleanCssTraces(frameworkToRemove) {
                 const projectName = Object.keys(angularJson.projects)[0];
                 const architect = angularJson.projects[projectName].architect;
 
-                if (architect && architect.build && architect.build.options && architect.build.options.scripts) {
-                    architect.build.options.scripts = architect.build.options.scripts.filter(script =>
-                        !script.includes('bootstrap')
-                    );
+                if (architect && architect.build && architect.build.options) {
+                    if (architect.build.options.scripts) {
+                        architect.build.options.scripts = architect.build.options.scripts.filter(script =>
+                            !script.includes('bootstrap')
+                        );
+                    }
+                    if (architect.build.options.styles) {
+                        architect.build.options.styles = architect.build.options.styles.filter(style =>
+                            !style.includes('bootstrap')
+                        );
+                    }
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
                 }
             } catch (e) {
@@ -54,28 +61,7 @@ export function configureCssFramework(framework) {
         console.log('\n🎨 Configuration de Bootstrap...');
         shelljs.exec('npm install bootstrap', { silent: false });
 
-        const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
-        const cssPath = path.join(process.cwd(), 'src', 'styles.css');
-        const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
-
-        if (styleFile) {
-            let content = fs.readFileSync(styleFile, 'utf8');
-            const isScss = styleFile.endsWith('.scss');
-
-            // Pour le SCSS, on importe le code source SASS de Bootstrap. Pour le CSS, on importe le fichier minifié.
-            const bootstrapImport = isScss
-                ? `@import 'bootstrap/scss/bootstrap';\n\n`
-                : `@import 'bootstrap/dist/css/bootstrap.min.css';\n\n`;
-
-            if (!content.includes('bootstrap')) {
-                fs.writeFileSync(styleFile, bootstrapImport + content);
-                console.log("✅ Fichier styles mis à jour avec l'import de Bootstrap.");
-            }
-        } else {
-            console.warn("⚠️  Fichier styles.scss/css introuvable pour ajouter l'import de Bootstrap.");
-        }
-
-        // On injecte également le JS de Bootstrap dans angular.json
+        // On injecte les fichiers CSS et JS de Bootstrap dans angular.json
         const angularJsonPath = path.join(process.cwd(), 'angular.json');
         if (fs.existsSync(angularJsonPath)) {
             try {
@@ -84,15 +70,22 @@ export function configureCssFramework(framework) {
                 const architect = angularJson.projects[projectName].architect;
 
                 if (architect && architect.build && architect.build.options) {
-                    architect.build.options.scripts = architect.build.options.scripts || [];
+                    // Ajout du CSS
+                    architect.build.options.styles = architect.build.options.styles || [];
+                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css') &&
+                        !architect.build.options.styles.includes('bootstrap/dist/css/bootstrap.min.css')) {
+                        architect.build.options.styles.unshift('bootstrap/dist/css/bootstrap.min.css');
+                    }
 
+                    // Ajout du JS
+                    architect.build.options.scripts = architect.build.options.scripts || [];
                     if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') &&
                         !architect.build.options.scripts.includes('bootstrap/dist/js/bootstrap.bundle.min.js')) {
                         architect.build.options.scripts.push('bootstrap/dist/js/bootstrap.bundle.min.js');
                     }
 
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
-                    console.log('✅ angular.json mis à jour avec les scripts Bootstrap.');
+                    console.log('✅ angular.json mis à jour avec les assets (CSS et JS) Bootstrap.');
                 }
             } catch (e) {
                 console.error('❌ Erreur lors de la configuration Bootstrap dans angular.json:', e.message);

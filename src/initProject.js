@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from 'path';
 import inquirer from 'inquirer';
-import { isAngularProject, setupErrorHandlers } from './utils.js';
+import { isAngularProject, setupErrorHandlers, getAngularMajorVersion } from './utils.js';
 import { createFolderStructure } from './init/folderStructure.js';
 import { createMenuConfig, createMenuService, createAppNavMenu } from './init/menu.js';
 import { createEnvironmentFiles } from './init/environment.js';
@@ -30,6 +30,25 @@ async function initProject() {
             console.error('❌ Erreur: Ce n\'est pas un projet Angular.');
             console.error('💡 Assurez-vous d\'être dans le dossier racine d\'un projet Angular.\n');
             process.exit(1);
+        }
+
+        const angularVersion = getAngularMajorVersion();
+        if (angularVersion !== 0 && angularVersion < 22) {
+            console.warn(`⚠️  Attention: Ce projet utilise Angular ${angularVersion}. Angular CLI Helper est optimisé pour Angular 22+ (Zoneless, Signals, etc.).`);
+            
+            const { continueInit } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'continueInit',
+                    message: 'Voulez-vous quand même continuer l\'initialisation ?',
+                    default: false
+                }
+            ]);
+
+            if (!continueInit) {
+                console.log('🛑 Initialisation annulée.');
+                process.exit(0);
+            }
         }
 
         const { cssFramework } = await inquirer.prompt([

@@ -50,3 +50,74 @@ describe('Utils', () => {
     });
   });
 });
+
+import fs from 'fs';
+import { vi, afterEach } from 'vitest';
+import { getAvailableModules, getAngularMajorVersion, isAngularProject } from './utils.js';
+
+describe('File System Utilities', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('getAvailableModules', () => {
+    it('should return empty array if features folder does not exist', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+      expect(getAvailableModules()).toEqual([]);
+    });
+
+    it('should return only directories within features', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['auth', 'dashboard', 'file.txt']);
+      vi.spyOn(fs, 'statSync').mockImplementation((pathStr) => ({
+        isDirectory: () => !pathStr.endsWith('.txt')
+      }));
+      
+      expect(getAvailableModules()).toEqual(['auth', 'dashboard']);
+    });
+  });
+
+  describe('getAngularMajorVersion', () => {
+    it('should return 0 if package.json does not exist', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+      expect(getAngularMajorVersion()).toBe(0);
+    });
+
+    it('should parse version from dependencies', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({
+        dependencies: { '@angular/core': '^18.2.0' }
+      }));
+      expect(getAngularMajorVersion()).toBe(18);
+    });
+
+    it('should parse version from devDependencies', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({
+        devDependencies: { '@angular/core': '~17.1.0' }
+      }));
+      expect(getAngularMajorVersion()).toBe(17);
+    });
+  });
+
+  describe('isAngularProject', () => {
+    it('should return false if angular.json is missing', () => {
+      vi.spyOn(fs, 'existsSync').mockImplementation(pathStr => !pathStr.includes('angular.json'));
+      expect(isAngularProject()).toBe(false);
+    });
+
+    it('should return false if package.json has no @angular/core', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({ dependencies: {} }));
+      expect(isAngularProject()).toBe(false);
+    });
+
+    it('should return true if angular.json exists and package.json contains @angular/core', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({
+        dependencies: { '@angular/core': '^18.0.0' }
+      }));
+      expect(isAngularProject()).toBe(true);
+    });
+  });
+});
