@@ -3,13 +3,20 @@ import path from 'path';
 import shelljs from 'shelljs';
 
 export function cleanCssTraces(frameworkToRemove) {
+    const cleanEnv = { ...process.env };
+    Object.keys(cleanEnv).forEach(key => {
+        if (key.toLowerCase().startsWith('npm_config_')) {
+            delete cleanEnv[key];
+        }
+    });
+
     const scssPath = path.join(process.cwd(), 'src', 'styles.scss');
     const cssPath = path.join(process.cwd(), 'src', 'styles.css');
     const styleFile = fs.existsSync(scssPath) ? scssPath : (fs.existsSync(cssPath) ? cssPath : null);
 
     if (frameworkToRemove === 'tailwind') {
         console.log('🧹 Nettoyage des traces de Tailwind CSS...');
-        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer', { silent: true });
+        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer', { silent: true, env: cleanEnv });
 
         if (styleFile) {
             let content = fs.readFileSync(styleFile, 'utf8');
@@ -19,7 +26,7 @@ export function cleanCssTraces(frameworkToRemove) {
         }
     } else if (frameworkToRemove === 'bootstrap') {
         console.log('🧹 Nettoyage des traces de Bootstrap...');
-        shelljs.exec('npm uninstall bootstrap bootstrap-icons', { silent: true });
+        shelljs.exec('npm uninstall bootstrap bootstrap-icons', { silent: true, env: cleanEnv });
 
         if (styleFile) {
             let content = fs.readFileSync(styleFile, 'utf8');
@@ -56,10 +63,17 @@ export function cleanCssTraces(frameworkToRemove) {
 }
 
 export function configureCssFramework(framework) {
+    const cleanEnv = { ...process.env };
+    Object.keys(cleanEnv).forEach(key => {
+        if (key.toLowerCase().startsWith('npm_config_')) {
+            delete cleanEnv[key];
+        }
+    });
+
     if (framework === 'bootstrap') {
         cleanCssTraces('tailwind');
         console.log('\n🎨 Configuration de Bootstrap et Bootstrap Icons...');
-        const result = shelljs.exec('npm install bootstrap bootstrap-icons', { silent: false });
+        const result = shelljs.exec('npm install bootstrap bootstrap-icons', { silent: false, env: cleanEnv });
         
         if (result.code !== 0) {
             console.error("\\n❌ Échec de l'installation de Bootstrap et Bootstrap Icons. Les fichiers d'import n'ont pas été ajoutés.");
@@ -104,7 +118,7 @@ export function configureCssFramework(framework) {
     } else if (framework === 'tailwind') {
         cleanCssTraces('bootstrap');
         console.log('\n🎨 Configuration de Tailwind CSS...');
-        const result = shelljs.exec('npx ng add tailwindcss --skip-confirmation', { silent: false });
+        const result = shelljs.exec('npx ng add tailwindcss --skip-confirmation', { silent: false, env: cleanEnv });
         
         if (result.code !== 0) {
             console.error("\\n❌ Échec de l'installation de Tailwind CSS.");
