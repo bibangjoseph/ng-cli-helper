@@ -19,7 +19,7 @@ export function cleanCssTraces(frameworkToRemove) {
         }
     } else if (frameworkToRemove === 'bootstrap') {
         console.log('🧹 Nettoyage des traces de Bootstrap...');
-        shelljs.exec('npm uninstall bootstrap', { silent: true });
+        shelljs.exec('npm uninstall bootstrap bootstrap-icons', { silent: true });
 
         if (styleFile) {
             let content = fs.readFileSync(styleFile, 'utf8');
@@ -58,8 +58,8 @@ export function cleanCssTraces(frameworkToRemove) {
 export function configureCssFramework(framework) {
     if (framework === 'bootstrap') {
         cleanCssTraces('tailwind');
-        console.log('\n🎨 Configuration de Bootstrap...');
-        shelljs.exec('npm install bootstrap', { silent: false });
+        console.log('\n🎨 Configuration de Bootstrap et Bootstrap Icons...');
+        shelljs.exec('npm install bootstrap bootstrap-icons', { silent: false });
 
         // On injecte les fichiers CSS et JS de Bootstrap dans angular.json
         const angularJsonPath = path.join(process.cwd(), 'angular.json');
@@ -72,14 +72,21 @@ export function configureCssFramework(framework) {
                 if (architect && architect.build && architect.build.options) {
                     // Ajout du CSS
                     architect.build.options.styles = architect.build.options.styles || [];
-                    if (!architect.build.options.styles.includes('node_modules/bootstrap/dist/css/bootstrap.min.css')) {
-                        architect.build.options.styles.unshift('node_modules/bootstrap/dist/css/bootstrap.min.css');
+                    // Nettoyage de l'ancienne erreur (node_modules/ préfixé)
+                    architect.build.options.styles = architect.build.options.styles.filter(s => !s.startsWith('node_modules/bootstrap'));
+                    if (!architect.build.options.styles.includes('bootstrap/dist/css/bootstrap.min.css')) {
+                        architect.build.options.styles.unshift('bootstrap/dist/css/bootstrap.min.css');
+                    }
+                    if (!architect.build.options.styles.includes('bootstrap-icons/font/bootstrap-icons.css')) {
+                        architect.build.options.styles.unshift('bootstrap-icons/font/bootstrap-icons.css');
                     }
 
                     // Ajout du JS
                     architect.build.options.scripts = architect.build.options.scripts || [];
-                    if (!architect.build.options.scripts.includes('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js')) {
-                        architect.build.options.scripts.push('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
+                    // Nettoyage de l'ancienne erreur (node_modules/ préfixé)
+                    architect.build.options.scripts = architect.build.options.scripts.filter(s => !s.startsWith('node_modules/bootstrap'));
+                    if (!architect.build.options.scripts.includes('bootstrap/dist/js/bootstrap.bundle.min.js')) {
+                        architect.build.options.scripts.push('bootstrap/dist/js/bootstrap.bundle.min.js');
                     }
 
                     fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
