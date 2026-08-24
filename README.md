@@ -44,7 +44,7 @@ Every generated artifact comes with its **`.spec.ts` test file**, ready to run. 
 
 ```bash
 npm install ng-cli-helper --save-dev
-```text
+```
 
 Add the scripts to your project's `package.json`:
 
@@ -61,7 +61,7 @@ Add the scripts to your project's `package.json`:
   "g:pipe":      "create-pipe",
   "help":        "angular-cli-help"
 }
-```text
+```
 
 Then run any generator with:
 
@@ -70,7 +70,7 @@ npm run g:init
 npm run g:package
 npm run g:page
 # etc.
-```text
+```
 
 ---
 
@@ -80,16 +80,16 @@ npm run g:page
 
 ```bash
 npm run g:init
-```text
+```
 
 During setup you'll be asked which CSS approach to use:
 
-```text
+```bash
 ? Quel framework CSS souhaitez-vous utiliser ?
   ❯ Tailwind CSS
     Bootstrap
     CSS Custom (aucun framework)
-```text
+```
 
 - **Tailwind CSS** — runs `ng add tailwindcss` for you
 - **Bootstrap** — installs the package, imports it in `styles.scss`/`styles.css`, and registers its JS bundle in `angular.json`
@@ -99,7 +99,7 @@ Re-running `g:init` after picking a different framework automatically removes th
 
 It then automatically creates the following structure inside your Angular project:
 
-```text
+```bash
 src/
 ├── app/
 │   ├── core/
@@ -130,7 +130,7 @@ src/
 └── environments/
     ├── environment.ts                 # Development config
     └── environment.prod.ts            # Production config
-```text
+```
 
 **Also configures:**
 - `angular.json` — `fileReplacements` for production build
@@ -168,7 +168,7 @@ export const APP_MENU: MenuItem[] = [
     ],
   },
 ];
-```text
+```
 
 `MenuService` (`core/services/menu.service.ts`) exposes the menu already filtered for the logged-in user, plus active-link helpers:
 
@@ -181,7 +181,7 @@ export class MyComponent {
 
   menu = this.menuService.visibleMenu; // computed signal, filtered by roles/permissions
 }
-```text
+```
 
 `AppNavMenuComponent` (`shared/components/app-nav-menu/`) renders it recursively — routes, icons, nested sub-menus, and active-link highlighting — and is already wired into the generated `main-layout`.
 
@@ -212,7 +212,7 @@ export class MyComponent {
     this.coreService.logout();
   }
 }
-```text
+```
 
 #### Guards
 
@@ -223,7 +223,7 @@ export class MyComponent {
   loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES),
   canActivate: [AuthGuard] // redirects to / if not authenticated
 }
-```text
+```
 
 **GuestGuard** — protects public routes:
 ```typescript
@@ -232,7 +232,7 @@ export class MyComponent {
   loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES),
   canActivate: [GuestGuard] // redirects to /dashboard if already authenticated
 }
-```text
+```
 
 #### HTTP Interceptor
 
@@ -245,7 +245,7 @@ provideHttpClient(withInterceptors([HttpInterceptor]))
 // Your requests become:
 // GET https://api.yourdomain.com/api/products
 // Headers: { Authorization: 'Bearer <token>' }
-```text
+```
 
 ---
 
@@ -253,25 +253,25 @@ provideHttpClient(withInterceptors([HttpInterceptor]))
 
 ```bash
 npm run g:package
-```text
-
 ```
+
+```bash
 ? Package name: products
 ? Which guard do you want to use?
   ❯ AuthGuard (authenticated routes)
     GuestGuard (public routes)
     No guard
-```text
+```
 
 **Generated structure:**
-```
+```bash
 features/products/
 ├── components/
 ├── views/
 ├── models/
 ├── routes.ts       # With selected guard + lazy loading
 └── README.md
-```text
+```
 
 **Generated `routes.ts`:**
 ```typescript
@@ -287,7 +287,7 @@ export const PRODUCTS_ROUTES: Routes = [
         ]
     }
 ];
-```text
+```
 
 `app.routes.ts` is updated automatically:
 ```typescript
@@ -296,7 +296,7 @@ export const routes: Routes = [
     { path: 'dashboard', loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES) },
     { path: 'products', loadChildren: () => import('./features/products/routes').then(m => m.PRODUCTS_ROUTES) }
 ];
-```text
+```
 
 ---
 
@@ -304,24 +304,24 @@ export const routes: Routes = [
 
 ```bash
 npm run g:page
-```text
-
 ```
+
+```bash
 ? Page name: product-list
 ? Module: (select from list)
   ❯ auth
     dashboard
     products
-```text
+```
 
 **Generated files:**
-```
+```bash
 features/products/views/product-list/
 ├── product-list.page.ts
 ├── product-list.page.html
 ├── product-list.page.scss
 └── product-list.page.spec.ts
-```text
+```
 
 **Generated `product-list.page.ts`** (Angular 19+):
 ```typescript
@@ -337,7 +337,7 @@ import { ApiService } from '@/core/services/api.service';
 export class ProductListPage {
   private apiService = inject(ApiService);
 }
-```text
+```
 
 > On Angular 14–18, `standalone: true` is added automatically.
 
@@ -349,7 +349,7 @@ children: [
         loadComponent: () => import('./views/product-list/product-list.page').then(m => m.ProductListPage)
     }
 ]
-```text
+```
 
 ---
 
@@ -357,38 +357,38 @@ children: [
 
 ```bash
 npm run g:component
-```text
-
 ```
+
+```bash
 ? Component name: product-card
 ? Is it a global (shared) component? (Y/n)
-```text
+```
 
 **If feature-scoped, a module list is shown:**
-```
+```bash
 ? Module:
   ❯ auth
     dashboard
     products
-```text
+```
 
 **Generated files (global):**
-```
+```bash
 shared/components/product-card/
 ├── product-card.component.ts
 ├── product-card.component.html
 ├── product-card.component.scss
 └── product-card.component.spec.ts
-```text
+```
 
 **Generated files (feature-scoped):**
-```
+```bash
 features/products/components/product-card/
 ├── product-card.component.ts
 ├── product-card.component.html
 ├── product-card.component.scss
 └── product-card.component.spec.ts
-```text
+```
 
 ---
 
@@ -396,18 +396,18 @@ features/products/components/product-card/
 
 ```bash
 npm run g:service
-```text
-
 ```
+
+```bash
 ? Service name: products
-```text
+```
 
 **Generated files:**
-```
+```bash
 core/services/
 ├── products.service.ts
 └── products.service.spec.ts
-```text
+```
 
 ---
 
@@ -415,22 +415,22 @@ core/services/
 
 ```bash
 npm run g:model
-```text
-
 ```
+
+```bash
 ? Model name: product
 ? Module:
   ❯ auth
     dashboard
     products
-```text
+```
 
 Creates `features/products/models/product.ts`:
 ```typescript
 export interface Product {
 
 }
-```text
+```
 
 ---
 
@@ -438,18 +438,18 @@ export interface Product {
 
 ```bash
 npm run g:guard
-```text
-
 ```
+
+```bash
 ? Guard name: admin
-```text
+```
 
 **Generated files:**
-```
+```bash
 core/guards/
 ├── admin.guard.ts
 └── admin.guard.spec.ts
-```text
+```
 
 ```typescript
 import { CanActivateFn } from '@angular/router';
@@ -457,7 +457,7 @@ import { CanActivateFn } from '@angular/router';
 export const AdminGuard: CanActivateFn = (route, state) => {
   return true;
 };
-```text
+```
 
 ---
 
@@ -465,7 +465,7 @@ export const AdminGuard: CanActivateFn = (route, state) => {
 
 ```bash
 npm run g:directive
-```text
+```
 
 Creates `shared/directives/<name>.directive.ts` and `<name>.directive.spec.ts` with a standalone directive scaffold.
 
@@ -475,7 +475,7 @@ Creates `shared/directives/<name>.directive.ts` and `<name>.directive.spec.ts` w
 
 ```bash
 npm run g:pipe
-```text
+```
 
 Creates `shared/pipes/<name>.pipe.ts` and `<name>.pipe.spec.ts` with a standalone pipe scaffold.
 
@@ -509,7 +509,7 @@ npm run g:service   # e.g. "products"
 
 # 8. Add models
 npm run g:model     # e.g. "product" in "products"
-```text
+```
 
 ---
 
@@ -527,7 +527,7 @@ this.apiService.delete('/products/1').subscribe();
 
 // GET via httpResource() (Angular 22+) — reactive resource with built-in loading/error state
 productsResource = this.apiService.getResource<Product[]>('/products');
-```text
+```
 
 **Automatic error handling:**
 
@@ -547,7 +547,7 @@ backendErrors = this.apiService.backendErrors; // signal<Record<string, string[]
 // Clear errors
 this.apiService.clearBackendErrors();
 this.apiService.clearFieldError('email');
-```text
+```
 
 ---
 
@@ -565,7 +565,7 @@ export const environment = {
   production: true,
   apiUrl: 'https://api.yourdomain.com/api'
 };
-```text
+```
 
 ```bash
 ng build --configuration production
