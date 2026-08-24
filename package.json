@@ -1,5 +1,5 @@
 {
-  "name": "ng-cli-helper",
+  "name": "angular-cli-helper",
   "version": "7.14.0",
   "main": "index.js",
   "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
@@ -31,12 +31,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bibangjoseph/ng-cli-helper.git"
+    "url": "https://github.com/bibangjoseph/angular-cli-helper.git"
   },
   "bugs": {
-    "url": "https://github.com/bibangjoseph/ng-cli-helper/issues"
+    "url": "https://github.com/bibangjoseph/angular-cli-helper/issues"
   },
-  "homepage": "https://github.com/bibangjoseph/ng-cli-helper#readme",
+  "homepage": "https://github.com/bibangjoseph/angular-cli-helper#readme",
   "keywords": [
     "angular",
     "angular-cli",

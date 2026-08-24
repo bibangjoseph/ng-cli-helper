@@ -1,10 +1,10 @@
-# ng-cli-helper
+# angular-cli-helper
 
-[![npm version](https://badge.fury.io/js/ng-cli-helper.svg)](https://www.npmjs.com/package/ng-cli-helper)
+[![npm version](https://badge.fury.io/js/angular-cli-helper.svg)](https://www.npmjs.com/package/angular-cli-helper)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://img.shields.io/npm/dm/ng-cli-helper.svg)](https://www.npmjs.com/package/ng-cli-helper)
+[![Downloads](https://img.shields.io/npm/dm/angular-cli-helper.svg)](https://www.npmjs.com/package/angular-cli-helper)
 
-**ng-cli-helper** is a CLI tool designed to speed up development on Angular standalone projects (Angular 14+). It scaffolds components, services, models, pages, packages, guards, directives, and pipes — and can initialize a full project structure with a built-in **API service**, **authentication system**, and **HTTP interceptor**.
+**angular-cli-helper** is a CLI tool designed to speed up development on Angular standalone projects (Angular 14+). It scaffolds components, services, models, pages, packages, guards, directives, and pipes — and can initialize a full project structure with a built-in **API service**, **authentication system**, and **HTTP interceptor**.
 
 Every generated artifact comes with its **`.spec.ts` test file**, ready to run. The generator automatically detects your Angular version — on Angular 19+, `standalone: true` is omitted since it's the default.
 
@@ -43,7 +43,7 @@ Every generated artifact comes with its **`.spec.ts` test file**, ready to run. 
 ## 🚀 Installation
 
 ```bash
-npm install ng-cli-helper --save-dev
+npm install angular-cli-helper --save-dev
 ```
 
 Add the scripts to your project's `package.json`:
@@ -487,8 +487,8 @@ Creates `shared/pipes/<name>.pipe.ts` and `<name>.pipe.spec.ts` with a standalon
 # 1. Create an Angular project
 ng new my-app
 
-# 2. Install ng-cli-helper
-npm install ng-cli-helper --save-dev
+# 2. Install angular-cli-helper
+npm install angular-cli-helper --save-dev
 
 # 3. Initialize the full structure
 npm run g:init
@@ -640,12 +640,12 @@ MIT © BIBANG BEFENE Joseph Donovan
 
 ## 🔗 Links
 
-- 📦 [npm](https://www.npmjs.com/package/ng-cli-helper)
-- 🐙 [GitHub](https://github.com/bibangjoseph/ng-cli-helper)
+- 📦 [npm](https://www.npmjs.com/package/angular-cli-helper)
+- 🐙 [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
 - 📧 Contact: bibangjose@gmail.com
 
 ---
 
 Developed with ❤️ by **BIBANG BEFENE Joseph Donovan**
 
-If this tool helps you, consider starring the repo on [GitHub](https://github.com/bibangjoseph/ng-cli-helper) ⭐
+If this tool helps you, consider starring the repo on [GitHub](https://github.com/bibangjoseph/angular-cli-helper) ⭐

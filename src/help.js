@@ -3,7 +3,7 @@
 function showHelp() {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                 ng-cli-helper v7.13.0 - Command Guide                 ║
+║                 angular-cli-helper v7.13.0 - Command Guide                 ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 
 📦 PROJECT SETUP
@@ -147,9 +147,9 @@ function showHelp() {
 
 🔗 RESOURCES
 ──────────────────────────────────────────────────────────────────────────
-  GitHub:   https://github.com/bibangjoseph/ng-cli-helper
-  npm:      https://www.npmjs.com/package/ng-cli-helper
-  Issues:   https://github.com/bibangjoseph/ng-cli-helper/issues
+  GitHub:   https://github.com/bibangjoseph/angular-cli-helper
+  npm:      https://www.npmjs.com/package/angular-cli-helper
+  Issues:   https://github.com/bibangjoseph/angular-cli-helper/issues
   Contact:  bibangjose@gmail.com
 
   Happy coding! 🚀
