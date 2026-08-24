@@ -10,7 +10,7 @@ setupErrorHandlers();
 /**
  * Met à jour le fichier routes.ts du module avec la nouvelle page (lazy loading)
  */
-function updateModuleRoutes(modulePath, moduleName, folderName, className) {
+function updateModuleRoutes(modulePath, moduleName, folderName, className, pageName) {
     const routesPath = path.join(modulePath, 'routes.ts');
 
     if (!fs.existsSync(routesPath)) {
@@ -185,7 +185,7 @@ describe('${className}', () => {
         console.log(`\n✅ Page "${pageName}" créée avec succès!`);
         console.log(`📁 Emplacement: ${basePath}`);
 
-        updateModuleRoutes(modulePath, moduleName, folderName, className);
+        updateModuleRoutes(modulePath, moduleName, folderName, className, pageName);
 
         console.log('\n📂 Fichiers créés:');
         console.log(`   ├── ${folderName}.page.ts`);
