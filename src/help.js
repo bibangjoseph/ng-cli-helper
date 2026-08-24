@@ -3,16 +3,17 @@
 function showHelp() {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════════════╗
-║              Angular CLI Helper v6.2.0 - Command Guide                ║
+║                 ng-cli-helper v7.13.0 - Command Guide                 ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 
 📦 PROJECT SETUP
 ──────────────────────────────────────────────────────────────────────────
   npm run g:init          Initialize the full project structure
+                           • Prompts for CSS framework (Tailwind/Bootstrap/Custom)
                            • Creates core/, shared/, layout/, features/
-                           • Generates API service, CoreService, guards
+                           • Generates API service, CoreService, guards, menu system
                            • Adds HTTP interceptor (auto JWT injection)
-                           • Configures app.config.ts (HttpClient + interceptor)
+                           • Configures app.config.ts (Zoneless, HttpClient + interceptor)
                            • Adds @/* path alias to tsconfig.json
                            • Sets up environments (dev / prod)
                            • Creates auth & dashboard modules by default
@@ -30,27 +31,33 @@ function showHelp() {
                            • ApiService injected automatically
                            • Files named in kebab-case
                            • Route added to module's routes.ts automatically
+                           • Generates .spec.ts test file
 
   npm run g:component     Create a standalone component
                            • Choice: global (shared/) or feature-scoped
-                           • Generates .ts, .html, .scss
+                           • Generates .ts, .html, .scss, .spec.ts
 
   npm run g:service       Create an injectable service
                            • Created in core/services/
                            • providedIn: 'root'
+                           • Generates .spec.ts test file
 
   npm run g:model         Create a TypeScript interface
                            • Created in features/<module>/models/
+                           • Module selected from list (no typing)
 
   npm run g:guard         Create a route guard
                            • Created in core/guards/
                            • Uses CanActivateFn (modern syntax)
+                           • Generates .spec.ts test file
 
   npm run g:directive     Create a standalone directive
                            • Created in shared/directives/
+                           • Generates .spec.ts test file
 
   npm run g:pipe          Create a standalone pipe
                            • Created in shared/pipes/
+                           • Generates .spec.ts test file
 
 🔑 API SERVICE  (core/services/api.service.ts)
 ──────────────────────────────────────────────────────────────────────────
@@ -60,6 +67,7 @@ function showHelp() {
   • put<T>(url, data, options?)
   • patch<T>(url, data, options?)
   • delete<T>(url, options?)
+  • getResource<T>(url)           Angular 22+ reactive httpResource
 
   Extra methods:
   • getPaginate<T>(url)           Paginated GET → PaginatedResponse<T>
@@ -94,11 +102,12 @@ function showHelp() {
   src/
   ├── app/
   │   ├── core/
-  │   │   ├── services/          api.service.ts, core.service.ts
+  │   │   ├── config/            menu.ts
+  │   │   ├── services/          api.service.ts, core.service.ts, menu.service.ts
   │   │   ├── guards/            auth.guard.ts, guest.guard.ts
   │   │   └── interceptors/      http.interceptor.ts
   │   ├── shared/
-  │   │   ├── components/
+  │   │   ├── components/        app-nav-menu/
   │   │   ├── directives/
   │   │   └── pipes/
   │   ├── layout/
@@ -132,16 +141,16 @@ function showHelp() {
 
 📦 REQUIREMENTS
 ──────────────────────────────────────────────────────────────────────────
-  Angular:  17, 18, 19, 20, 21+
-  Node:     >= 18.0.0
+  Angular:  >= 19.0.0
+  Node:     >= 18.19.1
   npm:      >= 9.0.0
 
 🔗 RESOURCES
 ──────────────────────────────────────────────────────────────────────────
-  GitHub:   https://github.com/bibangjoseph/angular-cli-helper
-  npm:      https://www.npmjs.com/package/angular-cli-helper
-  Issues:   https://github.com/bibangjoseph/angular-cli-helper/issues
-  Contact:  bibangjoseph@gmail.com
+  GitHub:   https://github.com/bibangjoseph/ng-cli-helper
+  npm:      https://www.npmjs.com/package/ng-cli-helper
+  Issues:   https://github.com/bibangjoseph/ng-cli-helper/issues
+  Contact:  bibangjose@gmail.com
 
   Happy coding! 🚀
     `);
