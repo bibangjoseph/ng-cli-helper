@@ -100,9 +100,9 @@ async function initProject() {
         createFolderStructure(basePath);
 
         // Créer la configuration du menu (routes, icônes, sous-menus, permissions)
-        createMenuConfig(basePath);
+        createMenuConfig(basePath, cssFramework);
         createMenuService(basePath);
-        createAppNavMenu(basePath);
+        createAppNavMenu(basePath, cssFramework);
 
         // Créer les fichiers d'environnement
         createEnvironmentFiles();

@@ -5,7 +5,7 @@ import shelljs from 'shelljs';
 /**
  * Crée le fichier de configuration du menu
  */
-export function createMenuConfig(basePath) {
+export function createMenuConfig(basePath, cssFramework = 'custom') {
     console.log('⚙️  Création de la configuration du menu...');
 
     const configPath = path.join(basePath, 'core', 'config');
@@ -18,6 +18,29 @@ export function createMenuConfig(basePath) {
     if (fs.existsSync(menuPath)) {
         console.log('ℹ️  Le fichier menu.ts existe déjà.');
         return;
+    }
+
+    let icons = {
+        home: 'home',
+        settings: 'settings',
+        users: 'users',
+        userPlus: 'user-plus'
+    };
+
+    if (cssFramework === 'bootstrap') {
+        icons = {
+            home: 'bi bi-house',
+            settings: 'bi bi-gear',
+            users: 'bi bi-people',
+            userPlus: 'bi bi-person-plus'
+        };
+    } else if (cssFramework === 'tailwind') {
+        icons = {
+            home: 'ri-home-3-line',
+            settings: 'ri-settings-3-line',
+            users: 'ri-group-line',
+            userPlus: 'ri-user-add-line'
+        };
     }
 
     const menuContent = `/**
@@ -49,12 +72,12 @@ export const APP_MENU: MenuItem[] = [
     id: 'dashboard',
     title: 'Tableau de bord',
     route: '/dashboard',
-    icon: 'home',
+    icon: '${icons.home}',
   },
   {
     id: 'administration',
     title: 'Administration',
-    icon: 'settings',
+    icon: '${icons.settings}',
     roles: ['admin'],
     permissions: ['admin.access'],
     children: [
@@ -62,14 +85,14 @@ export const APP_MENU: MenuItem[] = [
         id: 'users-list',
         title: 'Utilisateurs',
         route: '/admin/users',
-        icon: 'users',
+        icon: '${icons.users}',
         permissions: ['users.read'],
       },
       {
         id: 'users-create',
         title: 'Créer un utilisateur',
         route: '/admin/users/create',
-        icon: 'user-plus',
+        icon: '${icons.userPlus}',
         permissions: ['users.create'],
       },
     ],
@@ -214,7 +237,7 @@ export class MenuService {
 /**
  * Crée le composant de navigation réutilisable (sous-menus + lien actif)
  */
-export function createAppNavMenu(basePath) {
+export function createAppNavMenu(basePath, cssFramework = 'custom') {
     console.log('🧩 Création du composant app-nav-menu...');
 
     const navPath = path.join(basePath, 'shared', 'components', 'app-nav-menu');
@@ -246,6 +269,10 @@ export class AppNavMenuComponent {
 }
 `;
 
+    const iconHtml = (cssFramework === 'bootstrap' || cssFramework === 'tailwind')
+      ? `<i [class]="item.icon + ' nav-menu__icon'" aria-hidden="true"></i>`
+      : `<span class="nav-menu__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>`;
+
     const htmlContent = `<ul class="nav-menu" [class.nav-menu--nested]="nested()">
   @for (item of items(); track item.id) {
     <li
@@ -261,14 +288,14 @@ export class AppNavMenuComponent {
           [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
         >
           @if (item.icon) {
-            <span class="nav-menu__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+            ${iconHtml}
           }
           <span class="nav-menu__label">{{ item.title }}</span>
         </a>
       } @else {
         <span class="nav-menu__group-label">
           @if (item.icon) {
-            <span class="nav-menu__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+            ${iconHtml}
           }
           <span class="nav-menu__label">{{ item.title }}</span>
         </span>
@@ -324,12 +351,16 @@ export class AppNavMenuComponent {
   padding-top: 0.75rem;
 }
 
-.nav-menu__icon::before {
+${cssFramework === 'custom' ? `.nav-menu__icon::before {
   content: attr(data-icon);
   font-size: 0.75rem;
   opacity: 0.85;
 }
-`;
+` : `.nav-menu__icon {
+  font-size: 1.125rem;
+  opacity: 0.85;
+}
+`}`;
 
     const specContent = `import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';

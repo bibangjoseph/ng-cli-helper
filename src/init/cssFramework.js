@@ -16,13 +16,33 @@ export function cleanCssTraces(frameworkToRemove) {
 
     if (frameworkToRemove === 'tailwind') {
         console.log('🧹 Nettoyage des traces de Tailwind CSS...');
-        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer', { silent: true, env: cleanEnv });
+        shelljs.exec('npm uninstall tailwindcss @tailwindcss/postcss postcss autoprefixer remixicon', { silent: true, env: cleanEnv });
 
         if (styleFile) {
             let content = fs.readFileSync(styleFile, 'utf8');
             content = content.replace(/@import\s+['"]tailwindcss['"];?\n?/g, '');
             content = content.replace(/@tailwind\s+(base|components|utilities);?\n?/g, '');
             fs.writeFileSync(styleFile, content);
+        }
+
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+
+                if (architect && architect.build && architect.build.options) {
+                    if (architect.build.options.styles) {
+                        architect.build.options.styles = architect.build.options.styles.filter(style =>
+                            !style.includes('remixicon')
+                        );
+                    }
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                }
+            } catch (e) {
+                // Ignore
+            }
         }
     } else if (frameworkToRemove === 'bootstrap') {
         console.log('🧹 Nettoyage des traces de Bootstrap...');
@@ -124,7 +144,31 @@ export function configureCssFramework(framework) {
             console.error("\\n❌ Échec de l'installation de Tailwind CSS.");
             return;
         }
-        console.log('✅ Tailwind CSS installé et configuré.');
+
+        console.log('\n🎨 Installation de Remix Icon pour Tailwind...');
+        shelljs.exec('npm install remixicon', { silent: false, env: cleanEnv });
+        
+        const angularJsonPath = path.join(process.cwd(), 'angular.json');
+        if (fs.existsSync(angularJsonPath)) {
+            try {
+                const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
+                const projectName = Object.keys(angularJson.projects)[0];
+                const architect = angularJson.projects[projectName].architect;
+
+                if (architect && architect.build && architect.build.options) {
+                    architect.build.options.styles = architect.build.options.styles || [];
+                    if (!architect.build.options.styles.includes('remixicon/fonts/remixicon.css')) {
+                        architect.build.options.styles.unshift('remixicon/fonts/remixicon.css');
+                    }
+                    fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
+                    console.log('✅ angular.json mis à jour avec Remix Icon.');
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors de la configuration Remix Icon dans angular.json:', e.message);
+            }
+        }
+
+        console.log('✅ Tailwind CSS et Remix Icon installés et configurés.');
     } else if (framework === 'custom') {
         cleanCssTraces('tailwind');
         cleanCssTraces('bootstrap');
